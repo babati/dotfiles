@@ -1173,7 +1173,7 @@ vmap <silent> * #
 "-------------------------------------------------------------------------------
 function! s:enhance_c_highlight()
     " Member
-    syntax match class_member '\(\.\|->\)\zs\<\w\+\>'
+    syntax match class_member '\(\.\|->\)\zs\<\w\+\>\ze\s*[^(]'
     highlight def link class_member Identifier
 
     " Function call
@@ -1182,11 +1182,14 @@ function! s:enhance_c_highlight()
 endfunction
 
 function! s:enhance_cpp_highlight()
-    call s:enhance_c_highlight()
+    " Scopes
+    syntax match scoped_type '::\s*\zs\<\w\+\>\ze\s*[^:]'
+    highlight def link scoped_type Type
 
-    " Scope
     syntax match scope_group '\<\w\+\>\ze\s*::'
     highlight def link scope_group Constant
+
+    call s:enhance_c_highlight()
 endfunction
 
 function! s:enhance_python_highlight()
