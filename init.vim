@@ -339,8 +339,7 @@ endfunction
 
 augroup QfCustomization
     autocmd!
-    autocmd FileType qf setlocal wrap nonumber norelativenumber colorcolumn=
-    autocmd FileType qf setlocal statusline=
+    autocmd FileType qf setlocal wrap nonumber norelativenumber colorcolumn=0 statusline=
     autocmd FileType qf wincmd J
 augroup end
 
@@ -549,6 +548,7 @@ endfunction
 function! s:fs_find_files(list)
     cclose
     execute('below botright '.g:fs_number_of_matches.'new')
+    setlocal colorcolumn=0
 
     call s:setup_scratch_buffer('filelist')
     call s:fs_fill_search_window(a:list)
