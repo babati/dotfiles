@@ -1234,16 +1234,15 @@ let s:nocolor = 'none'
 
 " StatusLine customization -----------------------------------------------------
 set statusline=
-set statusline+=%1*\ %n\                                " Buffernr
+set statusline+=%1*\ %m%r%w\                            " Modified,readonly
 set statusline+=%2*\ \ %{GetCurrentBranch()}\ \         " Branch
-set statusline+=%3*\ %<%F                               " File+path
-set statusline+=%3*%m%r%w                               " Modified,readonly
-set statusline+=%3*\ %=\ %Y\                            " FileType
+set statusline+=%3*\ %<%t                               " File
+set statusline+=%3*\ %=\ %y\                            " FileType
 set statusline+=%2*\ %{''.(&fenc\ ?&fenc:&enc).''}      " Encoding
-set statusline+=%2*[%{&ff}]\                            " FileFormat
-set statusline+=%1*\ \ \ %p%%                           " Percent
+set statusline+=%2*\ [%{&ff}]\                          " FileFormat
 set statusline+=%1*\ \ %l/%L                            " Rownumber/total
-set statusline+=%1*\ :\ \ %c\                           " Column number
+set statusline+=%1*\ :\ %c                              " Column number
+set statusline+=%1*\ [%p%%]\                            " Percent
 
 execute('highlight User2 ctermfg='.s:color_grey4.' ctermbg='.s:color_grey0.' cterm=none')
 execute('highlight User3 ctermfg='.s:color_grey4.' ctermbg='.s:color_grey2.' cterm=none')
