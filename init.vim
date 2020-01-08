@@ -29,7 +29,7 @@ let g:netrw_special_syntax = 1  " Syntax highlight for special files
 function! s:netrw_open(path)
     let win_width = winwidth(0)
     let g:netrw_maxfilenamelen = win_width - 42
-    execute('edit '.(strlen(a:path) > 0 ? a:path : '.'))
+    execute('edit '.(strlen(a:path) > 0 ? a:path : expand('%:p:h')))
 endfunction
 
 command! -nargs=? E call s:netrw_open('<args>')
