@@ -268,10 +268,10 @@ endfunction
 command! -nargs=+ Dg call s:grep_in_cwd('<args>')
 
 " Search in cwd for work under cursor
-noremap <f11> :call <sid>grep_in_cwd(expand('<cword>'))<cr>
+noremap <silent> <f11> :call <sid>grep_in_cwd(expand('<cword>'))<cr>
 
 " Search in current buffer
-noremap <f12> :call <sid>grep_in_current_file(expand('<cword>'), expand('%'))<cr>
+noremap <silent> <f12> :call <sid>grep_in_current_file(expand('<cword>'), expand('%'))<cr>
 
 " Clean trailing whitespaces and last empty lines ------------------------------
 function! s:delete_trailing_whitespaces()
@@ -944,9 +944,9 @@ augroup end
 
 inoremap <expr> <silent> <tab> <sid>ce_tab_completion(-1)
 inoremap <expr> <silent> <s-tab> <sid>ce_tab_completion(1)
-inoremap <expr> <cr> <sid>ce_handle_enter()
-inoremap <expr> <esc> <sid>ce_handle_esc()
-inoremap <expr> <c-c> pumvisible() ? "\<c-e>" : "\<c-c>"
+inoremap <expr> <silent> <cr> <sid>ce_handle_enter()
+inoremap <expr> <silent> <esc> <sid>ce_handle_esc()
+inoremap <expr> <silent> <c-c> pumvisible() ? "\<c-e>" : "\<c-c>"
 
 "-------------------------------------------------------------------------------
 " Gtags integration, works on c/c++ currently.
