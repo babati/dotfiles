@@ -1126,7 +1126,7 @@ function! s:hl_highlight_cword()
 
         if current_word =~? current_char && current_word =~? '^\w\+$' && !(getreg('/') =~? current_word)
             execute('highlight EmphasizedCword ctermbg='.s:color_grey6.' cterm=bold')
-            execute('match EmphasizedCword "'.current_word.'"')
+            execute('match EmphasizedCword "\<'.current_word.'\>"')
         endif
     endif
 endfunction
