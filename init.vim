@@ -229,6 +229,14 @@ function! s:open_qf_window()
     botright copen
 endfunction
 
+function! s:execute_and_restore_pos(command)
+    let current_line = line('.')
+    let current_col = col('.')
+
+    execute(a:command)
+    call cursor(current_line, current_col)
+endfunction
+
 "======================== Plugin like functions ================================
 " Keep window open at buffer deleting ------------------------------------------
 function! s:erase_buffer()
@@ -275,16 +283,13 @@ noremap <silent> <f12> :call <sid>grep_in_current_file(expand('<cword>'), expand
 
 " Clean trailing whitespaces and last empty lines ------------------------------
 function! s:delete_trailing_whitespaces()
-    let current_line = line('.')
-    let current_col = col('.')
-    %s/\s\+$//ge
-    call cursor(current_line, current_col)
+    call s:execute_and_restore_pos('%s/\s\+$//ge')
 endfunction
 
 function! s:delete_last_empty_line()
     let line = getline('$')
     while line =~? '^\s*$'
-        call deletebufline(bufname('%'), '$')
+        call s:execute_and_restore_pos('$delete _')
         let line = getline('$')
     endwhile
 endfunction
@@ -535,7 +540,7 @@ endfunction
 function! s:fs_fill_search_window(files)
     let number_of_lines = min([len(a:files),g:fs_number_of_matches])
     silent! put =a:files[:number_of_lines-1]
-    call deletebufline(bufname('%'), 1)
+    call s:execute_and_restore_pos('1delete _')
 
     if number_of_lines != winheight(0)
         execute('resize '.number_of_lines)
@@ -609,7 +614,7 @@ function! s:fs_find_files(list)
             continue
         endif
 
-        call deletebufline(bufname('%'), 1, '$')
+        call s:execute_and_restore_pos('%delete _')
 
         let files = s:fs_get_matching_files(current_word, a:list)
         call s:fs_fill_search_window(files)
@@ -673,7 +678,7 @@ function! s:vc_fill_git_buffer(filetype, ...)
         silent! put =output
     endfor
 
-    call deletebufline(bufname('%'), 1)
+    call s:execute_and_restore_pos('1delete _')
     setlocal nomodifiable
 endfunction!
 
@@ -692,20 +697,16 @@ function! s:vc_git_show_inplace()
     nnoremap <silent> <buffer> q :Bc<cr>
 endfunction!
 
-function! s:vc_git_blame()
-    let current_line = line('.')
-    let current_file = expand('%')
-
+function! s:vc_git_blame(current_file)
     set scrollbind
 
     42vnew
-    call s:vc_fill_git_buffer('gitrebase', 'git blame -f -c '.current_file)
+    call s:vc_fill_git_buffer('gitrebase', 'git blame -f -c '.a:current_file)
 
     nnoremap <silent> <buffer> <Enter> :call <sid>vc_git_show_inplace()<cr>
     nnoremap <silent> <buffer> q :q<cr>
     autocmd BufLeave <buffer> wincmd p | set noscrollbind
 
-    call cursor(current_line, 1)
     set scrollbind
     syncbind
 endfunction
@@ -720,8 +721,6 @@ function! s:vc_git_diff(current_file, revision)
     diffthis
 
     nnoremap <silent> <buffer> q :q<cr>:diffoff!<cr>
-
-    call cursor(current_line, 1)
 endfunction
 
 function! s:vc_git_merge()
@@ -786,8 +785,8 @@ augroup GitWorkingDirectory
     autocmd BufReadPost,BufWritePost * call s:vc_collect_signs(expand('%:p'))
 augroup end
 
-command! -nargs=0 Gblame call s:vc_git_blame()
-command! -nargs=? Gvdiff call s:vc_git_diff(expand('%'), '<args>')
+command! -nargs=0 Gblame call s:execute_and_restore_pos('call s:vc_git_blame(expand("%"))')
+command! -nargs=? Gvdiff call s:execute_and_restore_pos('call s:vc_git_diff(expand("%"), "<args>")')
 command! -nargs=0 Gmerge call s:vc_git_merge()
 
 endif
