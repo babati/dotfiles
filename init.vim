@@ -1186,6 +1186,10 @@ function! s:enhance_python_highlight()
     " Function call
     syntax match function_call '\.\?\zs\<\w\+\>\ze\s*('
     highlight def link function_call Function
+
+    " Self
+    syntax match self '\<self\>'
+    highlight def link self Type
 endfunction
 
 augroup EnhancedSyntaxHighlight
