@@ -741,20 +741,6 @@ function! s:vc_git_merge()
     endif
 endfunction
 
-function! s:vc_git_accept_change()
-    let current_content = getline(1, '$')
-
-    diffoff!
-    tabclose
-    let filename = getreg('#')
-    execute('buffer '.filename)
-
-    call deletebufline(bufname('%'), 1, '$')
-    silent! put =current_content
-    call deletebufline(bufname('%'), 1)
-    write
-endfunction
-
 sign define Added text=+ texthl=Structure
 sign define Modified text=~ texthl=Type
 sign define Removed text=_ texthl=WarningMsg
