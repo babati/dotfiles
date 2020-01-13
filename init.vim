@@ -181,7 +181,7 @@ augroup end
 augroup CursorlineSetting
     autocmd!
     autocmd InsertLeave,WinEnter,BufEnter * set cursorline
-    autocmd InsertEnter,WinLeave,BufLeave * set nocursorline
+    autocmd InsertEnter                   * set nocursorline
 augroup CursorlineSetting
 
 "=============================== Commands ======================================
