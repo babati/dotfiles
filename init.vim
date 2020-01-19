@@ -204,7 +204,7 @@ let g:c_cpp_source_extensions = ['cpp', 'cc', 'cxx', 'c']
 
 function! s:setup_scratch_buffer(type)
     execute('set filetype='.a:type)
-    setlocal nonumber norelativenumber buftype=nofile bufhidden=delete nobuflisted
+    setlocal nonumber norelativenumber buftype=nofile bufhidden=wipe nobuflisted
 endfunction
 
 function! s:clear_cmd_line()
@@ -248,13 +248,13 @@ function! s:erase_buffer()
     endif
 
     if buflisted(buf_num)
-        execute('bdelete! '.buf_num)
+        execute('bwipeout! '.buf_num)
     endif
 endfunction
 
 command! -nargs=0 Q call s:erase_buffer()
 command! -nargs=0 Bc call s:erase_buffer()
-command! -nargs=0 Bca %bdelete!
+command! -nargs=0 Bca %bwipeout!
 
 nnoremap <silent> <leader>q :Bc<cr>
 
@@ -520,7 +520,7 @@ endfunction
 
 function! s:fs_open_file(line, mode)
     if empty(a:line)
-        bdelete!
+        bwipeout!
         return
     endif
 
@@ -529,7 +529,7 @@ function! s:fs_open_file(line, mode)
 
     call s:fs_cache_mru(file_with_line)
 
-    bdelete!
+    bwipeout!
 
     if file_to_open[0][0] != '/'
         let file_to_open[0] = g:current_working_directory.'/'.file_to_open[0]
@@ -567,7 +567,7 @@ function! s:fs_find_files(list)
         let c = getchar()
         if type(c) == type(0)
             if c == 27 || c == 3 " 27 - <esc>, 3 - <c-c>
-                bdelete
+                bwipeout
                 call s:clear_cmd_line()
                 break
             endif
