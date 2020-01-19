@@ -550,9 +550,9 @@ function! s:fs_fill_search_window(files)
     redraw
 endfunction
 
-function! s:fs_find_files(list)
+function! s:fs_find_files(name, list)
     cclose
-    execute('below botright '.g:fs_number_of_matches.'new')
+    execute('below botright '.g:fs_number_of_matches.'new '.a:name)
     setlocal colorcolumn=0
 
     call s:setup_scratch_buffer('filelist')
@@ -621,10 +621,10 @@ function! s:fs_find_files(list)
     endwhile
 endfunction
 
-command! -nargs=0 FsFindFiles if len(g:fs_files) == 0 | call s:fs_cache_files() | endif | call s:fs_find_files(g:fs_files)
-command! -nargs=0 FsFindBuffers call s:fs_find_files(filter(map(copy(getbufinfo({'bufloaded':1})), 's:cut_working_dir(v:val.name)'), {idx, val -> strlen(val) > 0}))
-command! -nargs=0 FsFindLines call s:fs_find_files(map(getbufline(bufnr('%'), 1, '$'), 'expand("%").":".v:key." ".v:val'))
-command! -nargs=0 FsFindMru call s:fs_find_files(g:fs_mru_cache)
+command! -nargs=0 FsFindFiles if len(g:fs_files) == 0 | call s:fs_cache_files() | endif | call s:fs_find_files('[files]', g:fs_files)
+command! -nargs=0 FsFindBuffers call s:fs_find_files('[buffers]', filter(map(copy(getbufinfo({'bufloaded':1})), 's:cut_working_dir(v:val.name)'), {idx, val -> strlen(val) > 0}))
+command! -nargs=0 FsFindLines call s:fs_find_files('[lines]', map(getbufline(bufnr('%'), 1, '$'), 'expand("%").":".v:key." ".v:val'))
+command! -nargs=0 FsFindMru call s:fs_find_files('[mru]', g:fs_mru_cache)
 command! -nargs=0 FsClearCache let g:fs_files = [] | let g:fs_mru_cache = []
 
 nnoremap <silent> <leader>f :FsFindFiles<cr>
@@ -684,6 +684,7 @@ endfunction!
 
 function! s:vc_git_show(commit_hash)
     enew
+    execute('file [show '.a:commit_hash.']')
     call s:vc_fill_git_buffer('git',
                 \ 'git show --pretty=fuller --stat '.a:commit_hash,
                 \ 'git show --pretty=format:"" '.a:commit_hash)
@@ -700,7 +701,7 @@ endfunction!
 function! s:vc_git_blame(current_file)
     set scrollbind
 
-    42vnew
+    42vnew [blame]
     call s:vc_fill_git_buffer('gitrebase', 'git blame -f -c '.a:current_file)
 
     nnoremap <silent> <buffer> <Enter> :call <sid>vc_git_show_inplace()<cr>
@@ -716,7 +717,7 @@ function! s:vc_git_diff(current_file, revision)
     let current_line = line('.')
     diffthis
 
-    vnew
+    execute('vnew [diff '.(empty(a:revision) ? 'HEAD' : a:revision).']')
     call s:vc_fill_git_buffer(filetype, 'git show '.a:revision.':'.s:cut_working_dir(a:current_file))
     diffthis
 
@@ -1081,7 +1082,7 @@ command! -nargs=1 SearchTag call s:tg_query_db('', '<args>', 0)
 nnoremap <silent> <leader>j :call <sid>tg_search_tag('-d', expand('<cword>'), 1)<cr>
 nnoremap <silent> <leader>i :call <sid>tg_search_tag('-s', expand('<cword>'), 0)<cr>
 nnoremap <silent> <leader>l :call <sid>tg_search_tag('-r', expand('<cword>'), 0)<cr>
-nnoremap <silent> <leader>O :call <sid>fs_find_files(map(<sid>tg_query_db('-f', expand('%:p')), "substitute(v:val, ':\(.*\):', ':\1 ', '')"))<cr>
+nnoremap <silent> <leader>O :call <sid>fs_find_files('[tags]', map(<sid>tg_query_db('-f', expand('%:p')), "substitute(v:val, ':\(.*\):', ':\1 ', '')"))<cr>
 
 endif
 
