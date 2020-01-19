@@ -37,7 +37,7 @@ command! -nargs=? E call s:netrw_open('<args>')
 augroup NetrwListing
   autocmd!
   autocmd! VimEnter * if expand('%') == '' | call s:netrw_open('.') | endif
-  autocmd FileType netrw setlocal nonumber norelativenumber colorcolumn=
+  autocmd! FileType netrw setlocal nonumber norelativenumber bufhidden=wipe colorcolumn=0
 augroup end
 
 " Common config ----------------------------------------------------------------
