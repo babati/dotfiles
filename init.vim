@@ -699,6 +699,8 @@ function! s:vc_git_show_inplace()
 endfunction!
 
 function! s:vc_git_blame(current_file)
+    let current_line = line('.') - 1
+
     set scrollbind
 
     42vnew [blame]
@@ -707,6 +709,9 @@ function! s:vc_git_blame(current_file)
     nnoremap <silent> <buffer> <Enter> :call <sid>vc_git_show_inplace()<cr>
     nnoremap <silent> <buffer> q :q<cr>
     autocmd BufLeave <buffer> wincmd p | set noscrollbind
+
+    call cursor(1, 1)
+    execute('normal '.current_line.'j')
 
     set scrollbind
     syncbind
@@ -786,7 +791,7 @@ augroup GitWorkingDirectory
     autocmd BufReadPost,BufWritePost * call s:vc_collect_signs(expand('%:p'))
 augroup end
 
-command! -nargs=0 Gblame call s:execute_and_restore_pos('call s:vc_git_blame(expand("%"))')
+command! -nargs=0 Gblame call s:vc_git_blame(expand("%"))
 command! -nargs=? Gvdiff call s:execute_and_restore_pos('call s:vc_git_diff(expand("%"), "<args>")')
 command! -nargs=0 Gmerge call s:vc_git_merge()
 
