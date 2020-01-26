@@ -1107,7 +1107,7 @@ set updatetime=1000
 augroup CwordHighlight
     autocmd!
     autocmd! CursorHold * call s:hl_highlight_cword()
-    autocmd! CursorMoved,InsertEnter * highlight clear EmphasizedCword
+    autocmd! CursorMoved,InsertEnter * highlight! def link EmphasizedCword NONE
 augroup end
 
 function! s:hl_highlight_cword()
@@ -1116,7 +1116,7 @@ function! s:hl_highlight_cword()
         let current_word = expand('<cword>')
 
         if current_word =~? current_char && current_word =~? '^\w\+$' && !(getreg('/') =~? current_word)
-            execute('highlight EmphasizedCword ctermbg='.s:color_grey6.' cterm=bold')
+            highlight! def link EmphasizedCword Visual
             execute('match EmphasizedCword "\<'.current_word.'\>"')
         endif
     endif
@@ -1267,8 +1267,8 @@ function! s:colorscheme() abort
     execute('highlight! CursorLineNr ctermfg='.s:color_grey5.' ctermbg='.s:nocolor.' cterm=none')
     highlight! link Title CursorLineNr
     execute('highlight! DiffAdd ctermfg='.s:color_grey4.' ctermbg='.s:color_green1.' cterm=none')
-    execute('highlight! DiffChange ctermfg='.s:color_grey1.' ctermbg='.s:color_blue0.' cterm=none')
-    execute('highlight! DiffText ctermfg='.s:color_grey0.' ctermbg='.s:color_purple1.' cterm=none')
+    execute('highlight! DiffChange ctermfg='.s:color_grey3.' ctermbg='.s:color_blue0.' cterm=none')
+    execute('highlight! DiffText ctermfg='.s:color_grey4.' ctermbg='.s:color_purple1.' cterm=none')
     execute('highlight! Error ctermfg='.s:color_grey0.' ctermbg='.s:color_red0.' cterm=none')
     highlight! link ErrorMsg Error
     highlight! link DiffDelete Error
@@ -1307,7 +1307,7 @@ function! s:colorscheme() abort
     highlight! link Question String
     execute('highlight! Type ctermfg='.s:color_purple1.' ctermbg='.s:nocolor.' cterm=none')
     highlight! link Directory Type
-    execute('highlight! Visual ctermfg='.s:nocolor.' ctermbg='.s:color_grey6.' cterm=none')
+    execute('highlight! Visual ctermfg='.s:nocolor.' ctermbg='.s:color_grey6.' cterm=bold')
     execute('highlight! WarningMsg ctermfg='.s:color_red0.' ctermbg='.s:nocolor.' cterm=none')
     highlight! link diffRemoved WarningMsg
 endfunction
