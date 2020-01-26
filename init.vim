@@ -993,7 +993,7 @@ function! s:tg_detect_db()
 endfunction
 
 function! s:tg_create_db(target_dir)
-    call s:log('[Gtags] Create tags for '.a:target_dir)
+    call s:log('[Gtags] Creating tags for: '.a:target_dir)
 
     let lib_name = split(a:target_dir, '/')[-1]
     let db_dir = g:tg_lib_path.'/'.lib_name
@@ -1003,7 +1003,7 @@ function! s:tg_create_db(target_dir)
         let current_pwd = getcwd()
         execute('cd '.a:target_dir)
 
-        let update_cmd = 'gtags -v -w --statistics '.db_dir
+        let update_cmd = 'gtags '.db_dir
         call system(update_cmd)
 
         execute('cd '.current_pwd)
@@ -1015,12 +1015,14 @@ endfunction
 function! s:tg_update_db(filename)
     if !filereadable(g:tg_db_dir.'/GTAGS')
         call mkdir(g:tg_db_dir, 'p')
-        let update_cmd = 'gtags -v -w --statistics '.g:tg_db_dir
+        let update_cmd = 'gtags '.g:tg_db_dir
     else
-        let update_cmd = 'global -vu'
+        let update_cmd = 'global -u'
         if !empty(a:filename)
             let update_cmd .= ' --single-update="'.a:filename.'"'
         endif
+
+        call s:log('[Gtags] Updating tag database')
     endif
 
     call system(update_cmd)
