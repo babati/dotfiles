@@ -496,17 +496,17 @@ endfunction
 function! s:fs_get_matching_files(word, list)
     let result = []
 
-    let pattern = '^.*'.(g:fs_fuzzy_matching ? join(split(a:word, '\zs'), '.*') : a:word).'.*$'
+    let pattern = (g:fs_fuzzy_matching ? join(split(a:word, '\zs'), '.*') : a:word)
     for file in a:list
         if file =~? pattern
             call add(result, file)
         endif
 
         if len(result) == g:fs_number_of_matches
-            return result
+            return [pattern, result]
         endif
     endfor
-    return result
+    return [pattern, result]
 endfunction
 
 function! s:fs_cache_mru(file_with_line)
@@ -537,7 +537,7 @@ function! s:fs_open_file(line, mode)
     execute(a:mode.' +'.(len(file_to_open) > 1 ? file_to_open[1] : 0).' '.fnameescape(file_to_open[0]))
 endfunction
 
-function! s:fs_fill_search_window(files)
+function! s:fs_fill_search_window(pattern, files)
     let number_of_lines = min([len(a:files),g:fs_number_of_matches])
     silent! put =a:files[:number_of_lines-1]
     call s:execute_and_restore_pos('1delete _')
@@ -545,6 +545,11 @@ function! s:fs_fill_search_window(files)
     if number_of_lines != winheight(0)
         execute('resize '.number_of_lines)
         normal ggG " refresh the current view
+    endif
+
+    if !empty(a:pattern)
+        highlight! def link FsSearch Visual
+        execute('match FsSearch "\c'.a:pattern.'"')
     endif
 
     redraw
@@ -555,18 +560,19 @@ function! s:fs_find_files(name, list)
     execute('below botright '.g:fs_number_of_matches.'new '.a:name)
     setlocal colorcolumn=0
 
+    let current_word = ''
+
     call s:setup_scratch_buffer('filelist')
-    call s:fs_fill_search_window(a:list)
+    call s:fs_fill_search_window(current_word, a:list)
 
     autocmd BufLeave <buffer> wincmd p
 
-    let current_word = ''
     while 1
         echo (g:fs_fuzzy_matching ? '>' : '=').'> '.current_word
 
         let c = getchar()
         if type(c) == type(0)
-            if c == 27 || c == 3 " 27 - <esc>, 3 - <c-c>
+            if c == 27 " 27 - <esc>
                 bwipeout
                 call s:clear_cmd_line()
                 break
@@ -616,9 +622,11 @@ function! s:fs_find_files(name, list)
 
         call s:execute_and_restore_pos('%delete _')
 
-        let files = s:fs_get_matching_files(current_word, a:list)
-        call s:fs_fill_search_window(files)
+        let [pattern, files] = s:fs_get_matching_files(current_word, a:list)
+        call s:fs_fill_search_window(pattern, files)
     endwhile
+
+    highlight! def link FsSearch NONE
 endfunction
 
 command! -nargs=0 FsFindFiles if len(g:fs_files) == 0 | call s:fs_cache_files() | endif | call s:fs_find_files('[files]', g:fs_files)
