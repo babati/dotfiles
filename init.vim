@@ -1174,37 +1174,37 @@ vmap <silent> * #
 "-------------------------------------------------------------------------------
 function! s:enhance_c_highlight()
     " Member
-    syntax match class_member '\(\.\|->\)\zs\<\w\+\>\ze\s*[^(]'
-    highlight def link class_member Identifier
+    syntax match CClassMember '\(\.\|->\)\zs\<\w\+\>\ze\s*[^(]'
+    highlight! default link CClassMember Identifier
 
     " Function call
-    syntax match function_call '\(\.\|->\)\?\zs\<\w\+\>\ze\s*('
-    highlight def link function_call Function
+    syntax match CFunctionCall '\(\.\|->\)\?\zs\<\w\+\>\ze\s*('
+    highlight! default link CFunctionCall Function
 endfunction
 
 function! s:enhance_cpp_highlight()
     " Scopes
-    syntax match scoped_type '::\s*\zs\<\w\+\>\ze\s*[^:]'
-    highlight def link scoped_type Type
+    syntax match CppScopedType '::\s*\zs\<\w\+\>\ze\s*[^:]'
+    highlight! default link CppScopedType Type
 
-    syntax match scope_group '\<\w\+\>\ze\s*::'
-    highlight def link scope_group Constant
+    syntax match CppScope '\<\w\+\>\ze\s*::'
+    highlight! default link CppScope Constant
 
     call s:enhance_c_highlight()
 endfunction
 
 function! s:enhance_python_highlight()
     " Member
-    syntax match class_member '\.\zs\<\w\+\>'
-    highlight def link class_member Identifier
+    syntax match PyClassMember '\.\zs\<\w\+\>'
+    highlight! default link PyClassMember Identifier
 
     " Function call
-    syntax match function_call '\.\?\zs\<\w\+\>\ze\s*('
-    highlight def link function_call Function
+    syntax match PyFunctionCall '\.\?\zs\<\w\+\>\ze\s*('
+    highlight! default link PyFunctionCall Function
 
     " Self
-    syntax keyword py_self self
-    highlight def link py_self Type
+    syntax keyword PySelf self
+    highlight! default link PySelf Type
 endfunction
 
 augroup EnhancedSyntaxHighlight
