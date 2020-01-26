@@ -1203,8 +1203,8 @@ function! s:enhance_python_highlight()
     highlight def link function_call Function
 
     " Self
-    syntax match self '\<self\>'
-    highlight def link self Type
+    syntax keyword py_self self
+    highlight def link py_self Type
 endfunction
 
 augroup EnhancedSyntaxHighlight
