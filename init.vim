@@ -573,7 +573,7 @@ function! s:fs_find_files(name, list)
         let c = getchar()
         if type(c) == type(0)
             if c == 27 " 27 - <esc>
-                bwipeout
+                bwipeout!
                 call s:clear_cmd_line()
                 break
             endif
@@ -627,6 +627,7 @@ function! s:fs_find_files(name, list)
     endwhile
 
     highlight! def link FsSearch NONE
+    syntax clear FsSearch
 endfunction
 
 command! -nargs=0 FsFindFiles if len(g:fs_files) == 0 | call s:fs_cache_files() | endif | call s:fs_find_files('[files]', g:fs_files)
@@ -1017,9 +1018,9 @@ function! s:tg_update_db(filename)
         let update_cmd = 'global -u'
         if !empty(a:filename)
             let update_cmd .= ' --single-update="'.a:filename.'"'
+        else
+            call s:log('[Gtags] Updating tag database')
         endif
-
-        call s:log('[Gtags] Updating tag database')
     endif
 
     call system(update_cmd)
@@ -1114,7 +1115,7 @@ set updatetime=1000
 augroup CwordHighlight
     autocmd!
     autocmd! CursorHold * call s:hl_highlight_cword()
-    autocmd! CursorMoved,InsertEnter * highlight! def link EmphasizedCword NONE
+    autocmd! CursorMoved,InsertEnter * highlight! def link EmphasizedCword NONE | syntax clear EmphasizedCword
 augroup end
 
 function! s:hl_highlight_cword()
