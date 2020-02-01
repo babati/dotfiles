@@ -481,7 +481,7 @@ let g:fs_number_of_matches = 10
 let g:fs_fuzzy_matching = 1
 
 function! s:fs_cache_files()
-    if g:vc_is_git_ws
+    if !empty(g:vc_git_branch)
         let search_cmd = 'cd '.shellescape(g:current_working_directory).' && git ls-files -co'
     elseif executable('find')
         let search_cmd = 'find '.shellescape(g:current_working_directory)
@@ -654,15 +654,11 @@ nnoremap <silent> <leader>m :FsFindMru<cr>
 " - Q: accept change in two way conflict view
 " - <enter>: show commit in blame view
 "-------------------------------------------------------------------------------
-let g:vc_is_git_ws = 0
-
-function! GetCurrentBranch()
-    return g:vc_is_git_ws ? s:vc_git_branch() : ''
-endfunction
+let g:vc_git_branch = ''
 
 if executable('git')
 
-function! s:vc_git_branch()
+function! s:vc_get_git_branch()
    let git_branch = system('git rev-parse --abbrev-ref HEAD 2> /dev/null')
    return substitute(git_branch, '\n', '', 'g')
 endfunction
@@ -671,7 +667,7 @@ function! s:vc_init_working_directory()
     let git_repo_root = system('git rev-parse --show-toplevel')
     if v:shell_error == 0
         let g:current_working_directory = substitute(git_repo_root, '\n', '', 'g')
-        let g:vc_is_git_ws = 1
+        let g:vc_git_branch = s:vc_get_git_branch()
         set grepprg=git\ --no-pager\ grep\ -n\ --no-color\ -i\ $*
         set grepformat=%f:%l:%m
     endif
@@ -776,10 +772,11 @@ function! s:vc_place_signs(name, filename, processed, others)
 endfunction
 
 function! s:vc_collect_signs(filename)
-    if !g:vc_is_git_ws || empty(a:filename) || !executable('grep')
+    if empty(g:vc_git_branch) || empty(a:filename) || !executable('grep')
         return
     endif
 
+    let g:vc_git_branch = s:vc_get_git_branch()
     execute('sign unplace * file='.a:filename)
 
     let result = split(system('git diff --no-ext-diff --no-color --unified=0 HEAD -- '.a:filename.' 2> /dev/null | grep -e "^@@"'), '\n')
@@ -1240,7 +1237,7 @@ let s:nocolor = 'none'
 " StatusLine customization -----------------------------------------------------
 set statusline=
 set statusline+=%1*\ %m%r%w\                            " Modified,readonly
-set statusline+=%2*\ \ %{GetCurrentBranch()}\ \         " Branch
+set statusline+=%2*\ \ %{g:vc_git_branch}\ \         " Branch
 set statusline+=%3*\ %<%t                               " File
 set statusline+=%3*\ %=\ %y\                            " FileType
 set statusline+=%2*\ %{''.(&fenc\ ?&fenc:&enc).''}      " Encoding
