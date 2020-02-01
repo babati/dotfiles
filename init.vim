@@ -346,6 +346,7 @@ augroup QfCustomization
     autocmd!
     autocmd FileType qf setlocal wrap nonumber norelativenumber colorcolumn=0 statusline=
     autocmd FileType qf wincmd J
+    autocmd WinEnter * if winnr('$') == 1 && &buftype == "quickfix" | quit | endif
 augroup end
 
 noremap <silent> <f10> :call <sid>toggle_quickfix_window()<cr>
