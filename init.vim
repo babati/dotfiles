@@ -7,13 +7,13 @@ let g:loaded_node_provider = 1
 
 " Disable unused default plugins -----------------------------------------------
 let g:loaded_gzip = 1
+let g:loaded_matchit = 1
 let g:loaded_matchparen = 1
 let g:loaded_spellfile_plugin = 1
 let g:loaded_tar = 1
 let g:loaded_tarPlugin = 1
 let g:loaded_zip = 1
 let g:loaded_zipPlugin = 1
-" let g:loaded_matchit = 1
 
 " Netrw ------------------------------------------------------------------------
 let g:netrw_banner = 0          " No header
@@ -130,6 +130,10 @@ nnoremap <silent> <leader>w :w!<cr>
 
 " Show registers
 nnoremap <silent> <leader>r :registers<cr>
+
+" Select current scope
+nnoremap % :execute('normal va'.getline('.')[col('.')-1].'o')<cr>
+vnoremap % o
 
 " Move between windows
 nnoremap <c-j> <c-w>j
