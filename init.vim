@@ -179,7 +179,6 @@ command! -nargs=1 StartProfiling profile start <args> | profile func * | profile
 
 "======================= Common config/functions ===============================
 let g:log_file = ''
-let g:current_working_directory = $PWD
 let g:c_cpp_header_extensions = ['h', 'hh', 'hpp', 'hxx']
 let g:c_cpp_source_extensions = ['cpp', 'cc', 'cxx', 'c']
 
@@ -194,7 +193,7 @@ function! s:clear_cmd_line()
 endfunction
 
 function! s:cut_working_dir(path)
-    return substitute(a:path, g:current_working_directory,'','')
+    return substitute(a:path, getcwd(),'','')
 endfunction
 
 function! s:log(data) abort
@@ -242,7 +241,7 @@ nnoremap <silent> <leader>q :Bc<cr>
 " Search pattern in files ------------------------------------------------------
 function! s:grep_in_cwd(pattern)
     cexpr []
-    execute('silent grep! "'.a:pattern.'" '.g:current_working_directory)
+    execute('silent grep! "'.a:pattern.'" '.getcwd())
     call s:open_qf_window()
 endfunction
 
@@ -283,7 +282,7 @@ augroup end
 
 " Find files in working directory ----------------------------------------------
 function! s:find_file(filename)
-    let result = findfile(a:filename, g:current_working_directory.'/**')
+    let result = findfile(a:filename, getcwd().'/**')
     if !empty(result)
         execute('edit '.result)
         return 1
@@ -464,9 +463,9 @@ let g:fs_fuzzy_matching = 1
 
 function! s:fs_cache_files()
     if !empty(g:vc_git_branch)
-        let search_cmd = 'cd '.shellescape(g:current_working_directory).' && git ls-files -co'
+        let search_cmd = 'cd '.shellescape(getcwd()).' && git ls-files -co'
     elseif executable('find')
-        let search_cmd = 'find '.shellescape(g:current_working_directory)
+        let search_cmd = 'find '.shellescape(getcwd())
     else
         call s:log('[FileFinder] No external commands are available to list files.')
         return
@@ -514,7 +513,7 @@ function! s:fs_open_file(line, mode)
     bwipeout!
 
     if file_to_open[0][0] != '/'
-        let file_to_open[0] = g:current_working_directory.'/'.file_to_open[0]
+        let file_to_open[0] = getcwd().'/'.file_to_open[0]
     endif
     execute(a:mode.' +'.(len(file_to_open) > 1 ? file_to_open[1] : 0).' '.fnameescape(file_to_open[0]))
 endfunction
@@ -649,7 +648,7 @@ endfunction
 function! s:vc_init_working_directory()
     let git_repo_root = system('git rev-parse --show-toplevel')
     if v:shell_error == 0
-        let g:current_working_directory = substitute(git_repo_root, '\n', '', 'g')
+        execute('cd '.substitute(git_repo_root, '\n', '', 'g'))
         let g:vc_git_branch = s:vc_get_git_branch()
         set grepprg=git\ --no-pager\ grep\ -n\ --no-color\ -i\ $*
         set grepformat=%f:%l:%m
@@ -954,7 +953,7 @@ let g:tg_extensions = g:c_cpp_header_extensions + g:c_cpp_source_extensions
 
 function! s:tg_set_env()
     let $GTAGSFORCECPP = 1
-    let $GTAGSROOT = g:current_working_directory
+    let $GTAGSROOT = getcwd()
     let $GTAGSDBPATH = g:tg_db_dir
 
     let lib_tags = join(globpath(g:tg_lib_path, '*/', 0, 1), ':')
@@ -962,7 +961,7 @@ function! s:tg_set_env()
 endfunction
 
 function! s:tg_detect_db()
-    let g:tg_db_dir = '/local/data/env/vim/'.split(g:current_working_directory, '\/')[-1]
+    let g:tg_db_dir = '/local/data/env/vim/'.split(getcwd(), '\/')[-1]
 
     call s:tg_set_env()
     call s:ce_register_source(function('s:tg_completion_source'))
@@ -1160,7 +1159,7 @@ function! s:fb_get_line(path)
             let filename .= '@'
         endif
     endif
-    let stats = getfsize(v:val)." ".strftime('%D-%T', getftime(v:val))
+    let stats = getfsize(v:val)." | ".strftime('%D-%T', getftime(v:val))
 
     let count = winwidth('.') - len(filename) - len(stats)
     return filename.repeat(' ', count).stats
@@ -1280,7 +1279,7 @@ function! s:fb_setup_mappings()
 endfunction
 
 function! s:fb_determine_working_directory(path)
-    let path = g:current_working_directory
+    let path = getcwd()
     if !empty(a:path)
         let path = fnamemodify(a:path, ':p:h')
     elseif !empty(expand('%:p:h'))
