@@ -193,7 +193,7 @@ function! s:clear_cmd_line()
 endfunction
 
 function! s:cut_working_dir(path)
-    return substitute(a:path, getcwd(),'','')
+    return substitute(a:path, getcwd().'/','','')
 endfunction
 
 function! s:log(data) abort
@@ -1166,15 +1166,15 @@ function! s:fb_get_line(path)
 endfunction
 
 function! s:fb_load_file_list(path)
-    setl modifiable
+    setlocal modifiable
     %delete _
 
     let directories = globpath(fnameescape(a:path), '{.,}*', 1, 1)
     call map(directories, 's:fb_get_line(v:val)')
-    put =directories
+    silent! put =directories
 
     1delete _
-    setl nomodifiable
+    setlocal nomodifiable
 endfunction
 
 function! s:fb_refresh_file_list()
@@ -1289,7 +1289,7 @@ function! s:fb_determine_working_directory(path)
     return path
 endfunction
 
-function! s:open_file_browser(path)
+function! s:fb_open_file_browser(path)
     enew
     call s:setup_scratch_buffer('filebrowser')
     call s:fb_setup_syntax()
@@ -1300,12 +1300,68 @@ function! s:open_file_browser(path)
     call s:fb_load_file_list(b:fs_path)
 endfunction
 
-command! -nargs=? ExploreFileBrowser call s:open_file_browser('<args>')
+command! -nargs=? ExploreFileBrowser call s:fb_open_file_browser('<args>')
 
 augroup FileBrowser
   autocmd!
-  autocmd! VimEnter * if expand('%') == '' | call s:open_file_browser('.') | endif
+  autocmd! VimEnter * if expand('%') == '' | call s:fb_open_file_browser('.') | endif
 augroup end
+
+"-------------------------------------------------------------------------------
+" Simple buffer lister
+"-------------------------------------------------------------------------------
+function! s:bl_get_line(buffer)
+    let name = s:cut_working_dir(a:buffer.name)
+    let prop = (a:buffer.loaded ? 'loaded' : 'unloaded').' | '.a:buffer.bufnr
+
+    let count = winwidth('.') - len(name) - len(prop)
+    return name.repeat(' ', count).prop
+endfunction
+
+function! s:bl_load_buffer_list()
+    setlocal modifiable
+    %delete _
+
+    let lines = map(filter(getbufinfo(), {idx, val -> v:val.bufnr != bufnr() }), 's:bl_get_line(v:val)')
+    silent! put =lines
+
+    1delete _
+    setlocal nomodifiable
+endfunction
+
+function! s:bl_open_buffer(bufnr)
+    call s:erase_buffer()
+    execute('buffer '.a:bufnr)
+endfunction
+
+function! s:bl_wipe_buffer(bufnr)
+    execute('bwipeout! '.a:bufnr)
+    call s:bl_refresh_list()
+endfunction
+
+function! s:bl_refresh_list()
+    call s:execute_and_restore_pos('call s:bl_load_buffer_list()')
+endfunction
+
+function! s:bl_get_bufnr(line)
+    return split(a:line, ' ', 0)[-1]
+endfunction
+
+function! s:bl_setup_mappings()
+    nnoremap <silent> <buffer> <Enter> :call <sid>bl_open_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
+    nnoremap <silent> <buffer> D :call <sid>bl_wipe_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
+    nnoremap <silent> <buffer> r :call <sid>bl_refresh_list()<cr>
+    nnoremap <silent> <buffer> q :Bc<cr>
+endfunction
+
+function! s:bl_open_buffer_list(path)
+    enew
+    call s:setup_scratch_buffer('bufferlist')
+    call s:bl_setup_mappings()
+    call s:bl_load_buffer_list()
+endfunction
+
+command! -nargs=? BufferList call s:bl_open_buffer_list('<args>')
 
 "-------------------------------------------------------------------------------
 " Syntax highlight improvements.
