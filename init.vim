@@ -232,7 +232,6 @@ function! s:erase_buffer()
     endif
 endfunction
 
-command! -nargs=0 Q call s:erase_buffer()
 command! -nargs=0 Bc call s:erase_buffer()
 command! -nargs=0 Bca %bwipeout!
 
@@ -501,7 +500,7 @@ endfunction
 
 function! s:fs_open_file(line, mode)
     if empty(a:line)
-        bwipeout!
+        hide
         return
     endif
 
@@ -510,7 +509,7 @@ function! s:fs_open_file(line, mode)
 
     call s:fs_cache_mru(file_with_line)
 
-    bwipeout!
+    hide
 
     if file_to_open[0][0] != '/'
         let file_to_open[0] = getcwd().'/'.file_to_open[0]
@@ -554,7 +553,7 @@ function! s:fs_find_files(name, list)
         let c = getchar()
         if type(c) == type(0)
             if c == 27 " 27 - <esc>
-                bwipeout!
+                hide
                 call s:clear_cmd_line()
                 break
             endif
