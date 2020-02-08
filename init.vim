@@ -41,7 +41,7 @@ set mouse=                      " Disable mouse
 set so=4                        " Set n lines to the cursor
 set wildmenu                    " Turn on command line completion
 set wildignore=*.o,*~,*.pyc     " Ignore compiled files
-set nuw=1                       " Line number column width
+set numberwidth=1               " Line number column width
 set cmdheight=2                 " Height of the command bar
 set laststatus=2                " Always show the status line
 set backspace=eol,start,indent  " Configure backspace
@@ -1178,7 +1178,7 @@ function! s:fb_load_file_list(path)
 endfunction
 
 function! s:fb_refresh_file_list()
-    call s:execute_and_restore_pos('call s:fb_load_file_list(b:fs_path)')
+    call s:execute_and_restore_pos('call s:fb_load_file_list(b:fb_path)')
 endfunction
 
 function! s:fb_is_directory(path)
@@ -1190,21 +1190,20 @@ function! s:fb_open_file(path)
         if a:path == './'
             return
         elseif a:path != '../'
-            let b:fs_path .= '/'.a:path
+            let b:fb_path .= '/'.a:path
         endif
-        let b:fs_path = fnamemodify(b:fs_path, ':h')
+        let b:fb_path = fnamemodify(b:fb_path, ':h')
 
-        call s:fb_load_file_list(b:fs_path)
+        call s:fb_load_file_list(b:fb_path)
     else
-        let file_to_open = b:fs_path.'/'.a:path
-        call s:erase_buffer()
-        execute('edit '.file_to_open)
+        let file_to_open = b:fb_path.'/'.a:path
+        execute('hide edit '.file_to_open)
     endif
 endfunction
 
 function! s:fb_delete_file(filename)
     let is_dir = s:fb_is_directory(a:filename)
-    let full_path = b:fs_path.'/'.a:filename
+    let full_path = b:fb_path.'/'.a:filename
 
     call inputsave()
     let confirm = input('Removing '.(is_dir ? 'directory' : 'file').': "'.full_path.'" ok? (y/n) ')
@@ -1218,7 +1217,7 @@ endfunction
 
 function! s:fb_rename_file(filename)
     let is_dir = s:fb_is_directory(a:filename)
-    let full_path = b:fs_path.'/'.a:filename
+    let full_path = b:fb_path.'/'.a:filename
 
     call inputsave()
     let new_filename = input('Moving '.(is_dir ? 'directory' : 'file').': ', full_path)
@@ -1232,7 +1231,7 @@ endfunction
 
 function! s:fb_copy_file(filename)
     let is_dir = s:fb_is_directory(a:filename)
-    let full_path = b:fs_path.'/'.a:filename
+    let full_path = b:fb_path.'/'.a:filename
 
     call inputsave()
     let new_filename = input('Copying '.(is_dir ? 'directory' : 'file').': ', full_path, 'file')
@@ -1246,7 +1245,7 @@ endfunction
 
 function! s:fb_new_file()
     call inputsave()
-    let new_filename = input('Creating new file: ', b:fs_path.'/')
+    let new_filename = input('Creating new file: ', b:fb_path.'/')
     call inputrestore()
 
     if !empty(new_filename)
@@ -1275,7 +1274,7 @@ function! s:fb_setup_mappings()
     nnoremap <silent> <buffer> N :call <sid>fb_new_file()<cr>
     nnoremap <silent> <buffer> Y :call <sid>fb_copy_file(<sid>fb_get_filename(getline('.')))<cr>
     nnoremap <silent> <buffer> r :call <sid>fb_refresh_file_list()<cr>
-    nnoremap <silent> <buffer> q :Bc<cr>
+    nnoremap <silent> <buffer> q :hide bnext<cr>
 endfunction
 
 function! s:fb_determine_working_directory(path)
@@ -1290,14 +1289,18 @@ function! s:fb_determine_working_directory(path)
 endfunction
 
 function! s:fb_open_file_browser(path)
+    let fs_path = s:fb_determine_working_directory(a:path)
+
     enew
     call s:setup_scratch_buffer('filebrowser')
+    execute('file '.fs_path)
+
     call s:fb_setup_syntax()
     call s:fb_setup_mappings()
 
-    let b:fs_path = s:fb_determine_working_directory(a:path)
+    let b:fb_path = fs_path
 
-    call s:fb_load_file_list(b:fs_path)
+    call s:fb_load_file_list(b:fb_path)
 endfunction
 
 command! -nargs=? ExploreFileBrowser call s:fb_open_file_browser('<args>')
@@ -1438,7 +1441,7 @@ let s:nocolor = 'none'
 set statusline=
 set statusline+=%1*\ %m%r%w\                            " Modified,readonly
 set statusline+=%2*\ \ %{g:vc_git_branch}\ \         " Branch
-set statusline+=%3*\ %<%t                               " File
+set statusline+=%3*\ %<%F                               " File
 set statusline+=%3*\ %=\ %y\                            " FileType
 set statusline+=%2*\ %{''.(&fenc\ ?&fenc:&enc).''}      " Encoding
 set statusline+=%2*\ [%{&ff}]\                          " FileFormat
