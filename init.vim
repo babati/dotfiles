@@ -222,10 +222,11 @@ endfunction
 function! s:erase_buffer()
     let buf_num = bufnr('%')
 
-    if bufnr('%') == buf_num
-        new
+    if bufnr('$') == buf_num
+        bprevious
+    else
+        bnext
     endif
-    bprevious
 
     if bufexists(buf_num)
         execute('bwipeout! '.buf_num)
@@ -538,7 +539,6 @@ endfunction
 function! s:fs_find_files(name, list)
     cclose
     execute('below botright '.g:fs_number_of_matches.'new '.a:name)
-    setlocal colorcolumn=0
 
     let current_word = ''
 
@@ -632,7 +632,6 @@ nnoremap <silent> <leader>m :FsFindMru<cr>
 
 " Mappings:
 " - q: close current view
-" - Q: accept change in two way conflict view
 " - <enter>: show commit in blame view
 "-------------------------------------------------------------------------------
 let g:vc_git_branch = ''
