@@ -1325,7 +1325,7 @@ function! s:bl_load_buffer_list()
     setlocal modifiable
     %delete _
 
-    let lines = map(filter(getbufinfo(), {idx, val -> v:val.bufnr != bufnr() }), 's:bl_get_line(v:val)')
+    let lines = map(filter(getbufinfo(), {idx, val -> v:val.bufnr != bufnr('%') }), 's:bl_get_line(v:val)')
     silent! put =lines
 
     1delete _
@@ -1333,7 +1333,6 @@ function! s:bl_load_buffer_list()
 endfunction
 
 function! s:bl_open_buffer(bufnr)
-    call s:erase_buffer()
     execute('buffer '.a:bufnr)
 endfunction
 
@@ -1354,7 +1353,7 @@ function! s:bl_setup_mappings()
     nnoremap <silent> <buffer> <Enter> :call <sid>bl_open_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
     nnoremap <silent> <buffer> D :call <sid>bl_wipe_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
     nnoremap <silent> <buffer> r :call <sid>bl_refresh_list()<cr>
-    nnoremap <silent> <buffer> q :Bc<cr>
+    nnoremap <silent> <buffer> q :hide bnext<cr>
 endfunction
 
 function! s:bl_open_buffer_list(path)
