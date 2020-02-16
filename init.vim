@@ -461,7 +461,6 @@ endif
 let g:fs_files = []
 let g:fs_mru_cache = []
 let g:fs_number_of_matches = 10
-let g:fs_fuzzy_matching = 1
 
 function! s:fs_cache_files()
     if !empty(g:vc_git_branch)
@@ -476,10 +475,10 @@ function! s:fs_cache_files()
     let g:fs_files = split(system(search_cmd), '\n')
 endfunction
 
-function! s:fs_get_matching_files(word, list)
+function! s:fs_get_matching_files(word, list, fuzzy)
     let result = []
 
-    let pattern = (g:fs_fuzzy_matching ? join(split(a:word, '\zs'), '.\{-}') : a:word)
+    let pattern = (a:fuzzy ? join(split(a:word, '\zs'), '.\{-}') : a:word)
     for file in a:list
         if file =~? pattern
             call add(result, file)
@@ -550,7 +549,7 @@ function! s:fs_find_files(name, list)
     autocmd BufLeave <buffer> wincmd p
 
     while 1
-        echo (g:fs_fuzzy_matching ? '>' : '=').'> '.current_word
+        echo '>> '.current_word
 
         let c = getchar()
         if type(c) == type(0)
@@ -574,8 +573,6 @@ function! s:fs_find_files(name, list)
                 call cursor(line('.') - 1, 1)
                 redraw
                 continue
-            elseif c == 4 " <c-d>
-                let g:fs_fuzzy_matching = g:fs_fuzzy_matching ? 0 : 1
             elseif c >= 32 && c <= 126
                 let next_char = nr2char(c)
                 let current_word = current_word.next_char
@@ -600,8 +597,14 @@ function! s:fs_find_files(name, list)
 
         call s:execute_and_restore_pos('%delete _')
 
-        let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list)
-        call s:fs_fill_search_window(pattern, files)
+        let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list, 0)
+
+        if len(files) < g:fs_number_of_matches
+            let [pattern_fuzzy, files_fuzzy] = s:fs_get_matching_files(escape(current_word, '.'), a:list, 1)
+            let files += files_fuzzy
+            let pattern .= '\|'.pattern_fuzzy
+        endif
+        call s:fs_fill_search_window(pattern, uniq(sort(files)))
     endwhile
 
     highlight! def link FsSearch NONE
@@ -1286,16 +1289,16 @@ function! s:fb_determine_working_directory(path)
 endfunction
 
 function! s:fb_open_file_browser(path)
-    let fs_path = s:fb_determine_working_directory(a:path)
+    let fb_path = s:fb_determine_working_directory(a:path)
 
     enew
     call s:setup_scratch_buffer('filebrowser')
-    execute('file '.fs_path)
+    execute('file '.fb_path)
 
     call s:fb_setup_syntax()
     call s:fb_setup_mappings()
 
-    let b:fb_path = fs_path
+    let b:fb_path = fb_path
 
     call s:fb_load_file_list(b:fb_path)
 endfunction
