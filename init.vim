@@ -1067,11 +1067,12 @@ command! -nargs=0 UpdateTagDb call s:tg_update_db('')
 command! -nargs=1 -complete=dir CreateSysTagDb call s:tg_create_db('<args>')
 command! -nargs=0 LoadTagDb call s:tg_detect_db()
 command! -nargs=0 ClearTagDb call s:tg_clear_db()
-command! -nargs=1 SearchTag call s:tg_query_db('', '<args>', 0)
+command! -nargs=1 SearchTag call s:tg_search_tag('', '<args>', 0)
 
 nnoremap <silent> <leader>j :call <sid>tg_search_tag('-d', expand('<cword>'), 1)<cr>
 nnoremap <silent> <leader>i :call <sid>tg_search_tag('-s', expand('<cword>'), 0)<cr>
 nnoremap <silent> <leader>l :call <sid>tg_search_tag('-r', expand('<cword>'), 0)<cr>
+nnoremap <leader>g :SearchTag
 nnoremap <silent> <leader>O :call <sid>fs_find_files('[tags]', map(<sid>tg_query_db('-f', expand('%:p')), "substitute(v:val, ':\(.*\):', ':\1 ', '')"))<cr>
 
 endif
