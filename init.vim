@@ -222,7 +222,9 @@ endfunction
 function! s:erase_buffer()
     let buf_num = bufnr('%')
 
-    if bufnr('$') == buf_num
+    if len(getbufinfo()) == 1
+        new
+    elseif bufnr('$') == buf_num
         bprevious
     else
         bnext
