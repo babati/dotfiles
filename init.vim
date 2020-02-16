@@ -109,8 +109,8 @@ nnoremap <silent> <leader>w :w!<cr>
 nnoremap <silent> <leader>r :registers<cr>
 
 " Select current scope
-nnoremap % :execute('normal va'.getline('.')[col('.')-1].'o')<cr>
-vnoremap % o
+nnoremap <silent> % :execute('normal va'.getline('.')[col('.')-1].'o')<cr>
+vnoremap <silent> % o
 
 " Move between windows
 nnoremap <c-j> <c-w>j
@@ -219,23 +219,23 @@ endfunction
 
 "======================== Plugin like functions ================================
 " Keep window open at buffer deleting ------------------------------------------
-function! s:erase_buffer()
+function! s:erase_buffer(wipe)
     let buf_num = bufnr('%')
 
     if len(getbufinfo()) == 1
-        new
+        enew
     elseif bufnr('$') == buf_num
         bprevious
     else
         bnext
     endif
 
-    if bufexists(buf_num)
+    if a:wipe && bufexists(buf_num)
         execute('bwipeout! '.buf_num)
     endif
 endfunction
 
-command! -nargs=0 Bc call s:erase_buffer()
+command! -nargs=0 Bc call s:erase_buffer(1)
 command! -nargs=0 Bca %bwipeout!
 
 nnoremap <silent> <leader>q :Bc<cr>
@@ -677,7 +677,7 @@ function! s:vc_git_show_inplace()
     let current_hash = substitute(split(getbufline(bufnr('%'), line('.'))[0], '\s')[0], '\^', '', '')
     quit
     call s:vc_git_show(current_hash)
-    nnoremap <silent> <buffer> q :Bc<cr>
+    nnoremap <silent> <buffer> q :call <sid>erase_buffer(0)<cr>
 endfunction!
 
 function! s:vc_git_blame(current_file)
@@ -708,7 +708,7 @@ function! s:vc_git_diff(current_file, revision)
     call s:vc_fill_git_buffer(filetype, 'git show '.a:revision.':'.s:cut_working_dir(a:current_file))
     diffthis
 
-    nnoremap <silent> <buffer> q :q<cr>:diffoff!<cr>
+    nnoremap <silent> <buffer> q :diffoff!<cr>:q<cr>
 endfunction
 
 function! s:vc_git_merge()
@@ -1271,7 +1271,7 @@ function! s:fb_setup_mappings()
     nnoremap <silent> <buffer> N :call <sid>fb_new_file()<cr>
     nnoremap <silent> <buffer> Y :call <sid>fb_copy_file(<sid>fb_get_filename(getline('.')))<cr>
     nnoremap <silent> <buffer> r :call <sid>fb_refresh_file_list()<cr>
-    nnoremap <silent> <buffer> q :hide bnext<cr>
+    nnoremap <silent> <buffer> q :call <sid>erase_buffer(0)<cr>
 endfunction
 
 function! s:fb_determine_working_directory(path)
@@ -1354,7 +1354,7 @@ function! s:bl_setup_mappings()
     nnoremap <silent> <buffer> <Enter> :call <sid>bl_open_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
     nnoremap <silent> <buffer> D :call <sid>bl_wipe_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
     nnoremap <silent> <buffer> r :call <sid>bl_refresh_list()<cr>
-    nnoremap <silent> <buffer> q :hide bnext<cr>
+    nnoremap <silent> <buffer> q :call <sid>erase_buffer(0)<cr>
 endfunction
 
 function! s:bl_open_buffer_list(path)
