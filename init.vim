@@ -477,7 +477,7 @@ endfunction
 function! s:fs_get_matching_files(word, list)
     let result = []
 
-    let pattern = (g:fs_fuzzy_matching ? join(split(a:word, '\zs'), '.*') : a:word)
+    let pattern = (g:fs_fuzzy_matching ? join(split(a:word, '\zs'), '.\{-}') : a:word)
     for file in a:list
         if file =~? pattern
             call add(result, file)
@@ -556,53 +556,49 @@ function! s:fs_find_files(name, list)
                 hide
                 call s:clear_cmd_line()
                 break
-            endif
-
-            if c == 13 " <enter>
+            elseif c == 13 " <enter>
                 call s:fs_open_file(getline('.'), 'edit')
                 call s:clear_cmd_line()
                 break
-            endif
-
-            if c == 22 " <c-v>
+            elseif c == 22 " <c-v>
                 call s:fs_open_file(getline('.'), 'vsplit')
                 call s:clear_cmd_line()
                 break
-            endif
-
-            if c == 10 " <c-j>
+            elseif c == 10 " <c-j>
                 call cursor(line('.') + 1, 1)
                 redraw
                 continue
-            endif
-
-            if c == 11 " <c-k>
+            elseif c == 11 " <c-k>
                 call cursor(line('.') - 1, 1)
                 redraw
                 continue
-            endif
-
-            if c == 4 " <c-d>
+            elseif c == 4 " <c-d>
                 let g:fs_fuzzy_matching = g:fs_fuzzy_matching ? 0 : 1
-            else
+            elseif c >= 32 && c <= 126
                 let next_char = nr2char(c)
                 let current_word = current_word.next_char
+            else
+                call s:clear_cmd_line()
+                redraw
+                continue
             endif
         elseif c is# "\<del>" || c is# "\<backspace>"
             let current_word = current_word[:-2]
         else
+            call s:clear_cmd_line()
             redraw
             continue
         endif
 
         if getchar(1)
             call s:clear_cmd_line()
+            redraw
             continue
         endif
 
         call s:execute_and_restore_pos('%delete _')
 
-        let [pattern, files] = s:fs_get_matching_files(current_word, a:list)
+        let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list)
         call s:fs_fill_search_window(pattern, files)
     endwhile
 
