@@ -1329,12 +1329,16 @@ function! s:bl_load_buffer_list()
 endfunction
 
 function! s:bl_open_buffer(bufnr)
-    execute('buffer '.a:bufnr)
+    if a:bufnr > 0
+        execute('buffer '.a:bufnr)
+    endif
 endfunction
 
 function! s:bl_wipe_buffer(bufnr)
-    execute('bwipeout! '.a:bufnr)
-    call s:bl_refresh_list()
+    if a:bufnr > 0
+        execute('bwipeout! '.a:bufnr)
+        call s:bl_refresh_list()
+    endif
 endfunction
 
 function! s:bl_refresh_list()
@@ -1342,7 +1346,7 @@ function! s:bl_refresh_list()
 endfunction
 
 function! s:bl_get_bufnr(line)
-    return split(a:line, ' ', 0)[-1]
+    return empty(a:line) ? 0 : split(a:line, ' ', 0)[-1]
 endfunction
 
 function! s:bl_setup_mappings()
