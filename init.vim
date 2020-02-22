@@ -38,7 +38,7 @@ set showmode                    " Show mode on statusline
 set showcmd                     " Show command on right hand side of statusline
 set mouse=                      " Disable mouse
 
-set so=4                        " Set n lines to the cursor
+set scrolloff=4                 " Set n lines to the cursor
 set wildmenu                    " Turn on command line completion
 set wildignore=*.o,*~,*.pyc     " Ignore compiled files
 set numberwidth=1               " Line number column width
@@ -72,7 +72,11 @@ set novisualbell                " Disable visual bells
 set t_vb=                       " Disable screen flashing
 set tm=500                      " Timeout to complete a key mapping
 
+set number                      " Absolute number on current line
+set relativenumber              " Relative numbers on other lines
+set cursorline                  " Highlight current line
 set colorcolumn=80              " Show colored column
+
 set encoding=utf8               " Set utf8 as standard encoding
 set ffs=unix,dos,mac            " Use Unix as the default file type
 
@@ -96,7 +100,7 @@ set noautoindent                " No auto indent
 set smartindent                 " Smart indent
 
 set nofoldenable                " No folding by default
-set foldmethod=syntax           " Syntax defines folding
+set foldmethod=manual           " Syntax defines folding
 
 "================================ Mappings =====================================
 " 0 as first non-blank character
@@ -149,21 +153,6 @@ nnoremap <silent> <f3> :bnext <cr>
 
 " Exit terminal
 tnoremap <esc><esc> <c-\><c-n>
-
-"============================= Auto commands ===================================
-" Absolute number on current line and relatives numbers on others
-augroup LineNumber
-    autocmd!
-    autocmd BufEnter * setlocal number relativenumber
-    autocmd Bufleave * setlocal norelativenumber nonumber
-augroup end
-
-" Cursorline in command mode only
-augroup CursorlineSetting
-    autocmd!
-    autocmd InsertLeave,WinEnter,BufEnter * set cursorline
-    autocmd InsertEnter                   * set nocursorline
-augroup end
 
 "=============================== Commands ======================================
 " Json pretty printer ----------------------------------------------------------
@@ -472,7 +461,7 @@ function! s:fs_cache_files()
         return
     endif
 
-    let g:fs_files = split(system(search_cmd), '\n')
+    let g:fs_files = systemlist(search_cmd)
 endfunction
 
 function! s:fs_get_matching_files(word, list, fuzzy)
@@ -715,12 +704,12 @@ function! s:vc_git_diff(current_file, revision)
 endfunction
 
 function! s:vc_git_merge()
-    let conflicting_files = split(system('git diff --no-ext-diff --no-color --name-only --diff-filter=U'), '\n')
+    let conflicting_files = systemlist('git diff --no-ext-diff --no-color --name-only --diff-filter=U')
     cexpr []
 
     if !empty(conflicting_files)
         for file in conflicting_files
-            let markers = split(system(substitute(&grepprg, '\$\*', '"<<<<<<<" '.file, '')), '\n')
+            let markers = systemlist(substitute(&grepprg, '\$\*', '"<<<<<<<" '.file, ''))
             if !empty(markers)
                 caddexpr markers[0]
             endif
@@ -760,7 +749,7 @@ function! s:vc_collect_signs(filename)
     let g:vc_git_branch = s:vc_get_git_branch()
     execute('sign unplace * file='.a:filename)
 
-    let result = split(system('git diff --no-ext-diff --no-color --unified=0 HEAD -- '.a:filename.' 2> /dev/null | grep -e "^@@"'), '\n')
+    let result = systemlist('git diff --no-ext-diff --no-color --unified=0 HEAD -- '.a:filename.' 2> /dev/null | grep -e "^@@"')
     for change in result
         let status = split(split(change, '@@')[0], '\s')
         let deleted_lines = s:vc_extract_changes_from_diff(status[0][1:])
@@ -1037,7 +1026,7 @@ endfunction
 
 function! s:tg_query_db(option, pattern)
     if g:tg_configured
-        return split(system('global -iq --result grep '.a:option.' '.a:pattern), '\n')
+        return systemlist('global -iq --result grep '.a:option.' '.a:pattern)
     endif
 
     return []
@@ -1443,7 +1432,7 @@ let s:nocolor = 'none'
 " StatusLine customization -----------------------------------------------------
 set statusline=
 set statusline+=%1*\ %m%r%w\                            " Modified,readonly
-set statusline+=%2*\ \ %{g:vc_git_branch}\ \         " Branch
+set statusline+=%2*\ \ %{g:vc_git_branch}\ \            " Branch
 set statusline+=%3*\ %<%F                               " File
 set statusline+=%3*\ %=\ %y\                            " FileType
 set statusline+=%2*\ %{''.(&fenc\ ?&fenc:&enc).''}      " Encoding
