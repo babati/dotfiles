@@ -435,7 +435,7 @@ endif
 
 "-------------------------------------------------------------------------------
 " Basic fuzzy file finder.
-" There are two modes:
+" There are two modes (automatic switching between modes):
 " - fuzzy: matches on characters in the given order, but other characters can be inserted between them
 " - strict: matches on exactly the given character sequence
 
@@ -445,7 +445,6 @@ endif
 " - FsFindLines (<leader>o): find lines in the current file
 " - FsFindMru (<leader>m): find the recently used files
 " - FsClearCache: clear filelist cache
-" - <c-d>: change between modes
 "-------------------------------------------------------------------------------
 let g:fs_files = []
 let g:fs_mru_cache = []
@@ -519,8 +518,8 @@ function! s:fs_fill_search_window(pattern, files)
     endif
 
     if !empty(a:pattern)
-        highlight! def link FsSearch Visual
-        execute('match FsSearch "\c'.a:pattern.'"')
+        syntax clear FsSearch
+        execute('syntax match FsSearch "\c'.a:pattern.'"')
     endif
 
     redraw
@@ -535,10 +534,12 @@ function! s:fs_find_files(name, list)
     call s:setup_scratch_buffer('filelist')
     call s:fs_fill_search_window(current_word, a:list)
 
+    highlight! def link FsSearch Visual
+
     autocmd BufLeave <buffer> wincmd p
 
     while 1
-        echo '>> '.current_word
+        echo '> '.current_word
 
         let c = getchar()
         if type(c) == type(0)
@@ -588,12 +589,10 @@ function! s:fs_find_files(name, list)
 
         let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list, 0)
 
-        if len(files) < g:fs_number_of_matches
-            let [pattern_fuzzy, files_fuzzy] = s:fs_get_matching_files(escape(current_word, '.'), a:list, 1)
-            let files += files_fuzzy
-            let pattern .= '\|'.pattern_fuzzy
+        if empty(files)
+            let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list, 1)
         endif
-        call s:fs_fill_search_window(pattern, uniq(sort(files)))
+        call s:fs_fill_search_window(pattern, files)
     endwhile
 
     highlight! def link FsSearch NONE
@@ -602,7 +601,7 @@ endfunction
 
 command! -nargs=0 FsFindFiles if len(g:fs_files) == 0 | call s:fs_cache_files() | endif | call s:fs_find_files('[files]', g:fs_files)
 command! -nargs=0 FsFindBuffers call s:fs_find_files('[buffers]', filter(map(copy(getbufinfo({'bufloaded':1})), 's:cut_working_dir(v:val.name)'), {idx, val -> strlen(val) > 0}))
-command! -nargs=0 FsFindLines call s:fs_find_files('[lines]', map(getbufline(bufnr('%'), 1, '$'), 'expand("%").":".v:key." ".v:val'))
+command! -nargs=0 FsFindLines call s:fs_find_files('[lines]', map(getbufline(bufnr('%'), 1, '$'), 's:cut_working_dir(expand("%")).":".v:key." ".v:val'))
 command! -nargs=0 FsFindMru call s:fs_find_files('[mru]', g:fs_mru_cache)
 command! -nargs=0 FsClearCache let g:fs_files = [] | let g:fs_mru_cache = []
 
