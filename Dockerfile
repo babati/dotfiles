@@ -48,8 +48,10 @@ RUN yum install -y \
     the_silver_searcher
 
 RUN yum install -y \
+    biber \
     texlive \
     texlive-algorithmicx \
+    texlive-biblatex \
     texlive-dblfloatfix \
     texlive-multirow \
     texlive-stix \
