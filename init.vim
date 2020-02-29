@@ -38,7 +38,6 @@ set showmode                    " Show mode on statusline
 set showcmd                     " Show command on right hand side of statusline
 set mouse=                      " Disable mouse
 
-set scrolloff=4                 " Set n lines to the cursor
 set wildmenu                    " Turn on command line completion
 set wildignore=*.o,*~,*.pyc     " Ignore compiled files
 set numberwidth=1               " Line number column width
@@ -162,6 +161,11 @@ nnoremap <silent> <f3> :bnext <cr>
 tnoremap <esc><esc> <c-\><c-n>
 
 "=============================== Commands ======================================
+augroup General
+    autocmd!
+    autocmd WinEnter * call execute('setlocal scrolloff='.(winheight(0) / 2))
+augroup end
+
 " Json pretty printer ----------------------------------------------------------
 if executable('python')
     command! -range Jsonpp execute(<line1>.','.<line2>.'!python -m json.tool')
@@ -1156,7 +1160,7 @@ function! s:fb_get_line(path)
     endif
     let stats = getfsize(v:val)." | ".strftime('%D-%T', getftime(v:val))
 
-    let count = winwidth('.') - len(filename) - len(stats)
+    let count = winwidth(0) - len(filename) - len(stats)
     return filename.repeat(' ', count).stats
 endfunction
 
