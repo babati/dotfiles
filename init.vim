@@ -1474,14 +1474,14 @@ function! s:colorscheme() abort
     execute('highlight! CursorColumn ctermfg='.s:nocolor.' ctermbg='.s:color_grey1.' cterm=none')
     highlight! link ColorColumn CursorColumn
     execute('highlight! CursorLine ctermfg='.s:nocolor.' ctermbg='.s:color_grey1.' cterm=none')
-    execute('highlight! Comment ctermfg='.s:color_grey3.' ctermbg='.s:nocolor.' cterm=none')
-    execute('highlight! Constant ctermfg='.s:color_purple0.' ctermbg='.s:nocolor.' cterm=none')
     execute('highlight! CursorLineNr ctermfg='.s:color_grey5.' ctermbg='.s:nocolor.' cterm=none')
     highlight! link Title CursorLineNr
+    execute('highlight! Comment ctermfg='.s:color_grey3.' ctermbg='.s:nocolor.' cterm=none')
+    execute('highlight! Constant ctermfg='.s:color_purple0.' ctermbg='.s:nocolor.' cterm=none')
     execute('highlight! DiffAdd ctermfg='.s:color_grey4.' ctermbg='.s:color_green1.' cterm=none')
     execute('highlight! DiffChange ctermfg='.s:color_grey3.' ctermbg='.s:color_blue0.' cterm=none')
     execute('highlight! DiffText ctermfg='.s:color_grey4.' ctermbg='.s:color_purple1.' cterm=none')
-    execute('highlight! Error ctermfg='.s:color_grey0.' ctermbg='.s:color_red0.' cterm=none')
+    execute('highlight! Error ctermfg='.s:color_grey4.' ctermbg='.s:color_red0.' cterm=none')
     highlight! link ErrorMsg Error
     highlight! link DiffDelete Error
     highlight! link SpellBad Error
