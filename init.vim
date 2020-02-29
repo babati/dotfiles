@@ -116,6 +116,13 @@ nnoremap <silent> <leader>r :registers<cr>
 nnoremap <silent> % :execute('normal va'.getline('.')[col('.')-1].'o')<cr>
 vnoremap <silent> % o
 
+" Remove current line
+nnoremap _ dd
+
+" Move line
+nnoremap + :m+<cr>
+nnoremap - :m-2<cr>
+
 " Move between windows
 nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
