@@ -269,11 +269,9 @@ function! s:delete_trailing_whitespaces()
 endfunction
 
 function! s:delete_last_empty_line()
-    let line = getline('$')
-    while line =~? '^\s*$'
+    if getline('$') =~? '^\s*$'
         call s:execute_and_restore_pos('$delete _')
-        let line = getline('$')
-    endwhile
+    endif
 endfunction
 
 augroup WsCleaner
@@ -962,7 +960,7 @@ function! s:tg_detect_db()
     let g:tg_db_dir = '/local/data/env/vim/'.split(getcwd(), '\/')[-1]
 
     call s:tg_set_env()
-    call s:ce_register_source(function('s:tg_completion_source'))
+    " call s:ce_register_source(function('s:tg_completion_source'))
     if filereadable(g:tg_db_dir.'/GTAGS')
         let g:tg_configured = 1
         call s:log('[Gtags] Database is used from: '.g:tg_db_dir)
