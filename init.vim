@@ -43,6 +43,40 @@ augroup NetrwListing
   autocmd! FileType netrw nnoremap ? :help netrw-quickmap<cr>
 augroup end
 
+" LSP --------------------------------------------------------------------------
+if has('nvim-0.5')
+
+set rtp+=/local/data/env/vim/nvim-lspconfig/
+
+lua << EOF
+require'nvim_lsp'.clangd.setup{}
+EOF
+
+function! s:lsp_log()
+    let logpath = v:lua.vim.lsp.get_log_path()
+    execute('edit '.logpath)
+endfunction
+
+function! s:lsp_reload()
+    lua vim.lsp.stop_client(vim.lsp.get_active_clients())
+    edit
+endfunction
+
+command! -nargs=0 LspLog call <sid>lsp_log()
+command! -nargs=0 LspReload call <sid>lsp_reload()
+
+nnoremap <silent> <f4> <cmd> ClangdSwitchSourceHeader<cr>
+nnoremap <silent> <space>j <cmd>lua vim.lsp.buf.declaration()<cr>
+nnoremap <silent> <space>i <cmd>lua vim.lsp.buf.hover()<cr>
+nnoremap <silent> <space>l <cmd>lua vim.lsp.buf.references()<cr>
+nnoremap <silent> <space>O <cmd>lua vim.lsp.buf.document_symbol()<cr>
+nnoremap <silent> <space>g <cmd>lua vim.lsp.buf.workspace_symbol()<cr>
+
+autocmd Filetype cpp setlocal completefunc=v:lua.vim.lsp.omnifunc
+
+endif
+
+
 " Common config ----------------------------------------------------------------
 let mapleader = ' '             " Set <leader> key
 let g:mapleader = ' '
@@ -197,8 +231,6 @@ command! -nargs=1 StartProfiling profile start <args> | profile func * | profile
 
 "======================= Common config/functions ===============================
 let g:log_file = ''
-let g:c_cpp_header_extensions = ['h', 'hh', 'hpp', 'hxx']
-let g:c_cpp_source_extensions = ['cpp', 'cc', 'cxx', 'c']
 
 function! s:setup_scratch_buffer(type)
     execute('set filetype='.a:type)
@@ -307,29 +339,8 @@ function! s:find_file(filename)
     endif
 endfunction
 
-function! s:check_file(extensions)
-    let filename = expand('%:t:r')
-    for ext in a:extensions
-        if s:find_file(filename.'.'.ext) == 1
-            break
-        endif
-    endfor
-endfunction
-
-function! s:switch_source_header_c_cpp()
-    let current_extension = expand('%:e')
-    if index(g:c_cpp_source_extensions, current_extension) != -1
-        call s:check_file(g:c_cpp_header_extensions)
-    elseif index(g:c_cpp_header_extensions, current_extension) != -1
-        call s:check_file(g:c_cpp_source_extensions)
-    endif
-endfunction
-
 " Jump to file under cursor
 nnoremap <silent> <f1> :call <sid>find_file(expand('<cfile>'))<cr>
-
-" Switch between headers and source files
-nnoremap <silent> <f4> :call <sid>switch_source_header_c_cpp()<cr>
 
 " Quickfix window customization ------------------------------------------------
 function! s:toggle_quickfix_window()
@@ -939,161 +950,6 @@ inoremap <expr> <silent> <s-tab> <sid>ce_tab_completion(1)
 inoremap <expr> <silent> <cr> <sid>ce_handle_enter()
 inoremap <expr> <silent> <esc> <sid>ce_handle_esc()
 inoremap <expr> <silent> <c-c> pumvisible() ? "\<c-e>" : "\<c-c>"
-
-"-------------------------------------------------------------------------------
-" Gtags integration, works on c/c++ currently.
-" Tag files are searched in g:tg_db_dir and lib tag files can be used from g:tg_lib_path.
-" Tags can be used in completion.
-
-" Commands:
-" - UpdateTagDb: update currently used tag db
-" - CreateSysTagDb: tag a library in the given path
-" - LoadTagDb: detect tag db
-" - ClearTagDb: delete currently used tag db
-" - SearchTag: search tags for given name
-
-" Mappings:
-" - <leader>j: jump to tag under cursor
-" - <leader>i: show tags matches under cursor
-" - <leader>l: find usages of current tag under cursor
-" - <leader>O: open file finder for tags of current file
-"-------------------------------------------------------------------------------
-if executable('gtags') && executable('global')
-
-let g:tg_configured = 0
-let g:tg_lib_path = '/local/data/env/vim/sys'
-let g:tg_db_dir = ''
-let g:tg_extensions = g:c_cpp_header_extensions + g:c_cpp_source_extensions
-
-function! s:tg_set_env()
-    let $GTAGSFORCECPP = 1
-    let $GTAGSROOT = getcwd()
-    let $GTAGSDBPATH = g:tg_db_dir
-
-    let lib_tags = join(globpath(g:tg_lib_path, '*/', 0, 1), ':')
-    let $GTAGSLIBPATH = lib_tags
-endfunction
-
-function! s:tg_detect_db()
-    let g:tg_db_dir = '/local/data/env/vim/'.split(getcwd(), '\/')[-1]
-
-    call s:tg_set_env()
-    " call s:ce_register_source(function('s:tg_completion_source'))
-    if filereadable(g:tg_db_dir.'/GTAGS')
-        let g:tg_configured = 1
-        call s:log('[Gtags] Database is used from: '.g:tg_db_dir)
-    endif
-endfunction
-
-function! s:tg_create_db(target_dir)
-    call s:log('[Gtags] Creating tags for: '.a:target_dir)
-
-    let lib_name = split(a:target_dir, '/')[-1]
-    let db_dir = g:tg_lib_path.'/'.lib_name
-    call mkdir(db_dir, 'p')
-
-    if !filereadable(db_dir.'/GTAGS')
-        let current_pwd = getcwd()
-        execute('cd '.a:target_dir)
-
-        let update_cmd = 'gtags '.db_dir
-        call system(update_cmd)
-
-        execute('cd '.current_pwd)
-
-        let $GTAGSLIBPATH = $GTAGSLIBPATH.':'.db_dir
-    endif
-endfunction
-
-function! s:tg_update_db(filename)
-    if !filereadable(g:tg_db_dir.'/GTAGS')
-        call mkdir(g:tg_db_dir, 'p')
-        let update_cmd = 'gtags '.g:tg_db_dir
-    else
-        let update_cmd = 'global -u'
-        if !empty(a:filename)
-            let update_cmd .= ' --single-update="'.a:filename.'"'
-        else
-            call s:log('[Gtags] Updating tag database')
-        endif
-    endif
-
-    call system(update_cmd)
-    let g:tg_configured = 1
-endfunction
-
-function! s:tg_auto_update_db()
-    if g:tg_configured
-        let extension = expand('%:t:e')
-        if index(g:tg_extensions, extension) != -1
-            call s:tg_update_db(expand('%:p'))
-        endif
-    endif
-endfunction
-
-function! s:tg_clear_db()
-    if g:tg_configured
-        let tags_path = [g:tg_db_dir.'/GTAGS', g:tg_db_dir.'/GRTAGS', g:tg_db_dir.'/GPATH']
-
-        let rm_cmd = 'rm -f '.join(tags_path, ' ')
-
-        call inputsave()
-        let confirm = input('Removing by "'.rm_cmd.'" ok? (y/n) ')
-        call inputrestore()
-
-        call s:clear_cmd_line()
-        if confirm == 'y'
-            let g:tg_configured = 0
-            call system(rm_cmd)
-            call s:log('[Gtags] Database has been removed from: '.g:tg_db_dir)
-        endif
-    endif
-endfunction
-
-function! s:tg_query_db(option, pattern)
-    if g:tg_configured
-        return systemlist('global -iq --result grep '.a:option.' '.a:pattern)
-    endif
-
-    return []
-endfunction
-
-function! s:tg_search_tag(option, pattern, jump)
-    let result = s:tg_query_db(a:option, a:pattern)
-
-    if !empty(result)
-        if a:jump && len(result) == 1
-            silent cexpr result
-        else
-            cgetexpr result
-            call s:open_qf_window()
-        endif
-    endif
-endfunction
-
-function! s:tg_completion_source(base)
-    return map(s:tg_query_db('-c', a:base), "{ 'word': v:val, 'kind': 'TAG' }")
-endfunction
-
-augroup TagDb
-    autocmd!
-    autocmd VimEnter * call s:tg_detect_db()
-    autocmd BufWritePost * call s:tg_auto_update_db()
-augroup end
-
-command! -nargs=0 UpdateTagDb call s:tg_update_db('')
-command! -nargs=1 -complete=dir CreateSysTagDb call s:tg_create_db('<args>')
-command! -nargs=0 LoadTagDb call s:tg_detect_db()
-command! -nargs=0 ClearTagDb call s:tg_clear_db()
-command! -nargs=1 SearchTag call s:tg_search_tag('', '<args>', 0)
-
-nnoremap <silent> <leader>j :call <sid>tg_search_tag('-d', expand('<cword>'), 1)<cr>
-nnoremap <silent> <leader>i :call <sid>tg_search_tag('-s', expand('<cword>'), 0)<cr>
-nnoremap <silent> <leader>l :call <sid>tg_search_tag('-r', expand('<cword>'), 0)<cr>
-nnoremap <leader>g :SearchTag
-nnoremap <silent> <leader>O :call <sid>fs_find_files('[tags]', map(<sid>tg_query_db('-f', expand('%:p')), "substitute(v:val, ':\(.*\):', ':\1 ', '')"))<cr>
-
-endif
 
 "-------------------------------------------------------------------------------
 " Highlight cword in idle time.
