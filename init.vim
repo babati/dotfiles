@@ -1269,12 +1269,12 @@ augroup end
 
 " Colors -----------------------------------------------------------------------
 let s:color_grey0 = '232'
-let s:color_grey1 = '16'
+let s:color_grey1 = '0'
 let s:color_grey2 = '233'
-let s:color_grey3 = '237'
+let s:color_grey3 = '238'
 let s:color_grey4 = '251'
-let s:color_grey5 = '238'
-let s:color_grey6 = '234'
+let s:color_grey5 = '239'
+let s:color_grey6 = '236'
 
 let s:color_blue0 = '116'
 let s:color_blue1 = '153'
@@ -1325,7 +1325,7 @@ function! s:colorscheme() abort
     execute('highlight! CursorColumn ctermfg='.s:nocolor.' ctermbg='.s:color_grey1.' cterm=none')
     highlight! link ColorColumn CursorColumn
     execute('highlight! CursorLine ctermfg='.s:nocolor.' ctermbg='.s:color_grey1.' cterm=none')
-    execute('highlight! CursorLineNr ctermfg='.s:color_grey5.' ctermbg='.s:nocolor.' cterm=none')
+    execute('highlight! CursorLineNr ctermfg='.s:color_grey4.' ctermbg='.s:nocolor.' cterm=none')
     highlight! link Title CursorLineNr
     execute('highlight! Comment ctermfg='.s:color_grey3.' ctermbg='.s:nocolor.' cterm=none')
     execute('highlight! Constant ctermfg='.s:color_purple0.' ctermbg='.s:nocolor.' cterm=none')
@@ -1341,9 +1341,10 @@ function! s:colorscheme() abort
     highlight! link MoreMsg Function
     highlight! link Special Function
     execute('highlight! Identifier ctermfg='.s:color_blue0.' ctermbg='.s:nocolor.' cterm=none')
-    execute('highlight! LineNr ctermfg='.s:color_grey6.' ctermbg='.s:nocolor.' cterm=none')
+    execute('highlight! LineNr ctermfg='.s:color_grey5.' ctermbg='.s:nocolor.' cterm=none')
     execute('highlight! LongLineWarning ctermfg='.s:nocolor.' ctermbg='.s:nocolor.' cterm=none')
     highlight! link Ignore LongLineWarning
+    execute('highlight! MatchParen  ctermfg='.s:color_grey4.' ctermbg='.s:color_green1.' cterm=none')
     execute('highlight! NonText ctermfg='.s:color_grey2.' ctermbg='.s:nocolor.' cterm=none')
     highlight! link VertSplit NonText
     execute('highlight! Normal ctermfg='.s:color_grey4.' ctermbg='.s:color_grey0.' cterm=none')
