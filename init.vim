@@ -63,6 +63,7 @@ set modelines=0                 " No modelines (config lines) are checked
 set showmode                    " Show mode on statusline
 set showcmd                     " Show command on right hand side of statusline
 set mouse=                      " Disable mouse
+set scrolloff=4                 " Set n lines to the cursor
 
 set wildmenu                    " Turn on command line completion
 set wildignore=*.o,*~,*.pyc     " Ignore compiled files
@@ -73,7 +74,7 @@ set backspace=eol,start,indent  " Configure backspace
 set whichwrap+=<,>,h,l          " Continue cursor movement at line beggining and ending
 
 set list                        " Show characters instead of whitespaces
-set listchars=tab:\|\ ,space:.,extends:#,nbsp:. " Swap special characters
+set listchars=tab:\|\ ,space:\ ,extends:#,nbsp:. " Swap special characters
 
 set ignorecase                  " Ignore case when searching
 set smartcase                   " Be case sensitive when upper case letter included
@@ -183,11 +184,6 @@ nnoremap <silent> <f3> :bnext <cr>
 tnoremap <esc><esc> <c-\><c-n>
 
 "=============================== Commands ======================================
-augroup General
-    autocmd!
-    autocmd WinEnter * call execute('setlocal scrolloff='.(winheight(0) / 2))
-augroup end
-
 " Json pretty printer ----------------------------------------------------------
 if executable('python')
     command! -range Jsonpp execute(<line1>.','.<line2>.'!python -m json.tool')
@@ -885,10 +881,10 @@ function! s:ce_get_completion_type(current_char)
     let elapsed_time = reltimefloat(reltime(g:ce_last_insertion))
     let g:ce_last_insertion = reltime()
     if s:ce_is_completion_enabled(elapsed_time)
-        if a:current_char =~? '\w'
-            return "\<c-x>\<c-u>"
-        elseif a:current_char == '/'
+        if a:current_char == '/'
             return "\<c-x>\<c-f>"
+        else
+            return "\<c-x>\<c-u>"
         endif
     endif
     return ''
@@ -1119,7 +1115,7 @@ augroup CwordHighlight
 augroup end
 
 function! s:hl_highlight_cword()
-    if &buftype == '' " normal buffer
+    if &buftype == '' && &diff == 0 " normal buffer and diff is not active
         let current_char = getline('.')[col('.') - 1]
         let current_word = expand('<cword>')
 
