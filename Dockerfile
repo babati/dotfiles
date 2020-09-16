@@ -37,6 +37,8 @@ RUN yum install -y \
 RUN yum install -y \
     automake \
     cmake \
+    ctags \
+    cscope \
     make \
     global \
     bash-completion \
