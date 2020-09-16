@@ -8,14 +8,40 @@ let g:loaded_node_provider = 1
 " Disable unused default plugins -----------------------------------------------
 let g:loaded_gzip = 1
 let g:loaded_matchit = 1
-let g:loaded_matchparen = 1
-let g:loaded_netrw = 1
-let g:loaded_netrwPlugin = 1
+" let g:loaded_matchparen = 1
+" let g:loaded_netrw = 1
+" let g:loaded_netrwPlugin = 1
 let g:loaded_spellfile_plugin = 1
 let g:loaded_tar = 1
 let g:loaded_tarPlugin = 1
 let g:loaded_zip = 1
 let g:loaded_zipPlugin = 1
+
+" Netrw ------------------------------------------------------------------------
+let g:netrw_banner = 0          " No header
+let g:netrw_liststyle = 1       " List view
+let g:netrw_browse_split = 0    " Open file in the same split
+let g:netrw_altv = 1            " Right splitting
+let g:netrw_winsize = 15        " Size is 15% of window
+let g:netrw_fastbrowse = 1      " Re-use directory listing in remote browsing
+let g:netrw_keepdir = 1         " Do not change cwd at browsing
+let g:netrw_silent = 0          " File transfering is not silent
+let g:netrw_special_syntax = 1  " Syntax highlight for special files
+
+function! s:netrw_open(path)
+    let win_width = winwidth(0)
+    let g:netrw_maxfilenamelen = win_width - 42
+    execute('edit '.(strlen(a:path) > 0 ? a:path : expand('%:p:h')))
+endfunction
+
+command! -nargs=? E call s:netrw_open('<args>')
+
+augroup NetrwListing
+  autocmd!
+  autocmd! VimEnter * if expand('%') == '' | call s:netrw_open('.') | endif
+  autocmd! FileType netrw setlocal nonumber norelativenumber bufhidden=wipe colorcolumn=0
+  autocmd! FileType netrw nnoremap ? :help netrw-quickmap<cr>
+augroup end
 
 " Common config ----------------------------------------------------------------
 let mapleader = ' '             " Set <leader> key
@@ -110,10 +136,6 @@ nnoremap <silent> <leader>w :w!<cr>
 
 " Show registers
 nnoremap <silent> <leader>r :registers<cr>
-
-" Select current scope
-nnoremap <silent> % :execute('normal va'.getline('.')[col('.')-1].'o')<cr>
-vnoremap <silent> % o
 
 " Remove current line
 nnoremap _ dd
@@ -1141,171 +1163,6 @@ nmap <silent> * #
 
 vnoremap <silent> # :call setreg('/', <sid>hl_search_visual_selection())<cr>:call histadd('search', getreg('/'))<cr>:set hlsearch<cr>
 vmap <silent> * #
-
-"-------------------------------------------------------------------------------
-" Minimalistic file browser
-"-------------------------------------------------------------------------------
-function! s:fb_get_line(path)
-    let type = getftype(v:val)
-    if type == 'dir'
-        let filename = fnamemodify(v:val, ":h:t")
-        let filename .= '/'
-    else
-        let filename = fnamemodify(v:val, ":t")
-        if type == 'link'
-            let filename .= '@'
-        endif
-    endif
-    let stats = getfsize(v:val)." | ".strftime('%D-%T', getftime(v:val))
-
-    let count = winwidth(0) - len(filename) - len(stats)
-    return filename.repeat(' ', count).stats
-endfunction
-
-function! s:fb_load_file_list(path)
-    setlocal modifiable
-    %delete _
-
-    let directories = globpath(fnameescape(a:path), '{.,}*', 1, 1)
-    call map(directories, 's:fb_get_line(v:val)')
-    silent! put =directories
-
-    1delete _
-    setlocal nomodifiable
-endfunction
-
-function! s:fb_refresh_file_list()
-    call s:execute_and_restore_pos('call s:fb_load_file_list(b:fb_path)')
-endfunction
-
-function! s:fb_is_directory(path)
-    return a:path =~ '\(\w\|\.\)\+/$'
-endfunction
-
-function! s:fb_open_file(path)
-    if s:fb_is_directory(a:path)
-        if a:path == './'
-            return
-        elseif a:path != '../'
-            let b:fb_path .= '/'.a:path
-        endif
-        let b:fb_path = fnamemodify(b:fb_path, ':h')
-
-        call s:fb_load_file_list(b:fb_path)
-    else
-        let file_to_open = b:fb_path.'/'.a:path
-        execute('hide edit '.file_to_open)
-    endif
-endfunction
-
-function! s:fb_delete_file(filename)
-    let is_dir = s:fb_is_directory(a:filename)
-    let full_path = b:fb_path.'/'.a:filename
-
-    call inputsave()
-    let confirm = input('Removing '.(is_dir ? 'directory' : 'file').': "'.full_path.'" ok? (y/n) ')
-    call inputrestore()
-
-    if confirm == 'y'
-        call delete(fnameescape(full_path), 'rf')
-        call s:fb_refresh_file_list()
-    endif
-endfunction
-
-function! s:fb_rename_file(filename)
-    let is_dir = s:fb_is_directory(a:filename)
-    let full_path = b:fb_path.'/'.a:filename
-
-    call inputsave()
-    let new_filename = input('Moving '.(is_dir ? 'directory' : 'file').': ', full_path)
-    call inputrestore()
-
-    if !empty(new_filename)
-        call rename(fnameescape(full_path), fnameescape(new_filename))
-        call s:fb_refresh_file_list()
-    endif
-endfunction
-
-function! s:fb_copy_file(filename)
-    let is_dir = s:fb_is_directory(a:filename)
-    let full_path = b:fb_path.'/'.a:filename
-
-    call inputsave()
-    let new_filename = input('Copying '.(is_dir ? 'directory' : 'file').': ', full_path, 'file')
-    call inputrestore()
-
-    if !empty(new_filename)
-        call system('cp '.(is_dir ? '-a ' : '').full_path.' '.new_filename)
-        call s:fb_refresh_file_list()
-    endif
-endfunction
-
-function! s:fb_new_file()
-    call inputsave()
-    let new_filename = input('Creating new file: ', b:fb_path.'/')
-    call inputrestore()
-
-    if !empty(new_filename)
-        call system('touch '.new_filename)
-        call s:fb_refresh_file_list()
-    endif
-endfunction
-
-function! s:fb_setup_syntax()
-    syntax match FileBrowserDir '^\<\(\w\+\|\.\)\>\ze/'
-    highlight! default link FileBrowserDir Type
-
-    syntax match FileBrowserSymLink '^\<\(\w\|\.\)\+\>\ze@'
-    highlight! default link FileBrowserSymLink Function
-endfunction
-
-function! s:fb_get_filename(line)
-    return split(a:line, ' ', 0)[0]
-endfunction
-
-function! s:fb_setup_mappings()
-    nnoremap <silent> <buffer> <Enter> :call <sid>fb_open_file(<sid>fb_get_filename(getline('.')))<cr>
-    nnoremap <silent> <buffer> - :call <sid>fb_open_file('../')<cr>
-    nnoremap <silent> <buffer> D :call <sid>fb_delete_file(<sid>fb_get_filename(getline('.')))<cr>
-    nnoremap <silent> <buffer> R :call <sid>fb_rename_file(<sid>fb_get_filename(getline('.')))<cr>
-    nnoremap <silent> <buffer> N :call <sid>fb_new_file()<cr>
-    nnoremap <silent> <buffer> Y :call <sid>fb_copy_file(<sid>fb_get_filename(getline('.')))<cr>
-    nnoremap <silent> <buffer> r :call <sid>fb_refresh_file_list()<cr>
-    nnoremap <silent> <buffer> q :call <sid>erase_buffer(0)<cr>
-endfunction
-
-function! s:fb_determine_working_directory(path)
-    let path = getcwd()
-    if !empty(a:path)
-        let path = fnamemodify(a:path, ':p:h')
-    elseif !empty(expand('%:p:h'))
-        let path = expand('%:p:h')
-    endif
-
-    return path
-endfunction
-
-function! s:fb_open_file_browser(path)
-    let fb_path = s:fb_determine_working_directory(a:path)
-
-    enew
-    call s:setup_scratch_buffer('filebrowser')
-    execute('file '.fb_path)
-
-    call s:fb_setup_syntax()
-    call s:fb_setup_mappings()
-
-    let b:fb_path = fb_path
-
-    call s:fb_load_file_list(b:fb_path)
-endfunction
-
-command! -nargs=? ExploreFileBrowser call s:fb_open_file_browser('<args>')
-
-augroup FileBrowser
-  autocmd!
-  autocmd! VimEnter * if expand('%') == '' | call s:fb_open_file_browser('.') | endif
-augroup end
 
 "-------------------------------------------------------------------------------
 " Simple buffer lister
