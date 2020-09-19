@@ -72,10 +72,9 @@ nnoremap <silent> <space>l <cmd>lua vim.lsp.buf.references()<cr>
 nnoremap <silent> <space>O <cmd>lua vim.lsp.buf.document_symbol()<cr>
 nnoremap <silent> <space>g <cmd>lua vim.lsp.buf.workspace_symbol()<cr>
 
-autocmd Filetype cpp setlocal completefunc=v:lua.vim.lsp.omnifunc
+autocmd Filetype c,cpp setlocal completefunc=v:lua.vim.lsp.omnifunc
 
 endif
-
 
 " Common config ----------------------------------------------------------------
 let mapleader = ' '             " Set <leader> key
@@ -826,23 +825,18 @@ let g:ce_keywords = {  'a': [], 'b': [], 'c': [], 'd': [], 'e': [], 'f': [], 'g'
             \ 'j': [], 'k': [], 'l': [], 'm': [], 'n': [], 'o': [], 'p': [], 'q': [], 'r': [], 's': [],
             \ 't': [], 'u': [], 'v': [], 'w': [], 'x': [], 'y': [], 'z': [], '_': [],
             \ '0': [], '1': [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8': [], '9': [] }
-let g:ce_sources = []
 let g:ce_max_items = 10
-let g:ce_max_file_size = 512000 " bytes
+let g:ce_max_file_size = 1024000 " bytes
 let g:ce_completion_time_limit = 0.005 " sec
 let g:ce_last_insertion = reltime()
 
 set completeopt=menuone,noselect                " show popup with one match
 set shortmess+=ac                               " hide completion message
 call execute('set pumheight='.g:ce_max_items)   " max height of popup
-set completefunc=CeCustomComplete
+set completefunc=CeKeywordComplete
 
-function! CeCustomComplete(findstart, base)
+function! CeKeywordComplete(findstart, base)
     return a:findstart ? <sid>ce_find_word_start() : <sid>ce_collect_matching_words(a:base)
-endfunction
-
-function! s:ce_register_source(fn)
-    call add(g:ce_sources, a:fn)
 endfunction
 
 function! s:ce_find_word_start()
@@ -854,29 +848,18 @@ function! s:ce_find_word_start()
     return start
 endfunction!
 
-function! s:ce_keyword_source(base)
-    let result = []
-    if a:base[0] =~? '\w'
-        for word in g:ce_keywords[tolower(a:base[0])]
-            if word =~? '^'.a:base
-                call add(result, { 'word': word, 'kind': 'ID' })
-            endif
-        endfor
-    endif
-    return result
-endfunction
-
 function! s:ce_collect_matching_words(base)
     let result = []
-    for Fn in g:ce_sources
-        let result += Fn(a:base)
-    endfor
+    if a:base[0] =~? '\w'
+        let result = copy(g:ce_keywords[tolower(a:base[0])])
+        call filter(result, 'v:val =~? "^".a:base')
+    endif
     return { 'words': result, 'refresh': 'always' }
 endfunction
 
 function! s:ce_cache_keywords()
     if getfsize(expand('%')) < g:ce_max_file_size
-        let keywords = uniq(sort(split(join(getline(1,'$'), '\n'), '\W\+')))
+        let keywords = uniq(sort(split(join(getline(1,'$'), ' '), '\W\+')))
         call map(keywords, 'add(g:ce_keywords[tolower(v:val[0])], v:val)')
         call map(g:ce_keywords, 'uniq(sort(v:val))')
     endif
@@ -939,7 +922,6 @@ endfunction
 
 augroup CompletionEngine
     autocmd!
-    autocmd VimEnter * call s:ce_register_source(function('s:ce_keyword_source'))
     autocmd InsertEnter * let g:ce_last_insertion = reltime()
     autocmd InsertCharPre * call s:ce_start_completion()
     autocmd BufReadPost,BufWritePost * call s:ce_cache_keywords()
