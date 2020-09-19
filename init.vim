@@ -897,7 +897,6 @@ function! s:ce_tab_completion(direction)
             return s:ce_get_completion_type(line[col - 2])
         endif
     endif
-
 endfunction
 
 function! s:ce_handle_esc()
@@ -993,65 +992,6 @@ nmap <silent> * #
 
 vnoremap <silent> # :call setreg('/', <sid>hl_search_visual_selection())<cr>:call histadd('search', getreg('/'))<cr>:set hlsearch<cr>
 vmap <silent> * #
-
-"-------------------------------------------------------------------------------
-" Simple buffer lister
-"-------------------------------------------------------------------------------
-function! s:bl_get_line(buffer)
-    let name = s:cut_working_dir(a:buffer.name)
-    let prop = (a:buffer.loaded ? 'loaded' : 'unloaded').' | '.a:buffer.bufnr
-
-    let count = winwidth('.') - len(name) - len(prop)
-    return name.repeat(' ', count).prop
-endfunction
-
-function! s:bl_load_buffer_list()
-    setlocal modifiable
-    %delete _
-
-    let lines = map(filter(getbufinfo(), {idx, val -> v:val.bufnr != bufnr('%') }), 's:bl_get_line(v:val)')
-    silent! put =lines
-
-    1delete _
-    setlocal nomodifiable
-endfunction
-
-function! s:bl_open_buffer(bufnr)
-    if a:bufnr > 0
-        execute('buffer '.a:bufnr)
-    endif
-endfunction
-
-function! s:bl_wipe_buffer(bufnr)
-    if a:bufnr > 0
-        execute('bwipeout! '.a:bufnr)
-        call s:bl_refresh_list()
-    endif
-endfunction
-
-function! s:bl_refresh_list()
-    call s:execute_and_restore_pos('call s:bl_load_buffer_list()')
-endfunction
-
-function! s:bl_get_bufnr(line)
-    return empty(a:line) ? 0 : split(a:line, ' ', 0)[-1]
-endfunction
-
-function! s:bl_setup_mappings()
-    nnoremap <silent> <buffer> <Enter> :call <sid>bl_open_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
-    nnoremap <silent> <buffer> D :call <sid>bl_wipe_buffer(<sid>bl_get_bufnr(getline('.')))<cr>
-    nnoremap <silent> <buffer> r :call <sid>bl_refresh_list()<cr>
-    nnoremap <silent> <buffer> q :call <sid>erase_buffer(0)<cr>
-endfunction
-
-function! s:bl_open_buffer_list(path)
-    enew
-    call s:setup_scratch_buffer('bufferlist')
-    call s:bl_setup_mappings()
-    call s:bl_load_buffer_list()
-endfunction
-
-command! -nargs=? BufferList call s:bl_open_buffer_list('<args>')
 
 "-------------------------------------------------------------------------------
 " Syntax highlight improvements.
