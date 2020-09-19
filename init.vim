@@ -488,7 +488,7 @@ let g:fs_mru_cache = []
 let g:fs_number_of_matches = 10
 
 function! s:fs_cache_files()
-    if !empty(g:vc_git_branch)
+    if g:vc_git_configured
         let search_cmd = 'cd '.shellescape(getcwd()).' && git ls-files -co'
     elseif executable('find')
         let search_cmd = 'find '.shellescape(getcwd())
@@ -660,23 +660,20 @@ nnoremap <silent> <leader>m :FsFindMru<cr>
 " - q: close current view
 " - <enter>: show commit in blame view
 "-------------------------------------------------------------------------------
-let g:vc_git_branch = ''
-
 if executable('git')
 
-function! s:vc_get_git_branch()
-   let git_branch = system('git rev-parse --abbrev-ref HEAD 2> /dev/null')
-   return substitute(git_branch, '\n', '', 'g')
-endfunction
+let g:vc_git_configured = v:false
 
 function! s:vc_init_working_directory()
     let git_repo_root = system('git rev-parse --show-toplevel')
+
     if v:shell_error == 0
         execute('cd '.substitute(git_repo_root, '\n', '', 'g'))
-        let g:vc_git_branch = s:vc_get_git_branch()
+        let g:vc_git_configured = v:true
         set grepprg=git\ --no-pager\ grep\ -n\ --no-color\ -i\ $*
         set grepformat=%f:%l:%m
     endif
+
     unlet git_repo_root
 endfunction
 
@@ -778,11 +775,10 @@ function! s:vc_place_signs(name, filename, processed, others)
 endfunction
 
 function! s:vc_collect_signs(filename)
-    if empty(g:vc_git_branch) || empty(a:filename) || !executable('grep')
+    if !g:vc_git_configured || empty(a:filename) || !executable('grep')
         return
     endif
 
-    let g:vc_git_branch = s:vc_get_git_branch()
     execute('sign unplace * file='.a:filename)
 
     let result = systemlist('git diff --no-ext-diff --no-color --unified=0 HEAD -- '.a:filename.' 2> /dev/null | grep -e "^@@"')
@@ -1131,9 +1127,8 @@ let s:nocolor = 'none'
 " StatusLine customization -----------------------------------------------------
 set statusline=
 set statusline+=%1*\ %m%r%w\                            " Modified,readonly
-set statusline+=%2*\ \ %{g:vc_git_branch}\ \            " Branch
-set statusline+=%3*\ %<%F                               " File
-set statusline+=%3*\ %=\ %y\                            " FileType
+set statusline+=%2*\ %y\                                " FileType
+set statusline+=%3*\ %<%F\ %=\                          " File
 set statusline+=%2*\ %{''.(&fenc\ ?&fenc:&enc).''}      " Encoding
 set statusline+=%2*\ [%{&ff}]\                          " FileFormat
 set statusline+=%1*\ \ %l/%L                            " Rownumber/total
