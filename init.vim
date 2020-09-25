@@ -480,11 +480,9 @@ endif
 " - FsFindFiles (<leader>f): find files in the current directory recursively, filelist is loaded at the first execution
 " - FsFindBuffers (<leader>u): find files which are already opened
 " - FsFindLines (<leader>o): find lines in the current file
-" - FsFindMru (<leader>m): find the recently used files
 " - FsClearCache: clear filelist cache
 "-------------------------------------------------------------------------------
 let g:fs_files = []
-let g:fs_mru_cache = []
 let g:fs_number_of_matches = 10
 
 function! s:fs_cache_files()
@@ -516,15 +514,6 @@ function! s:fs_get_matching_files(word, list, fuzzy)
     return [pattern, result]
 endfunction
 
-function! s:fs_cache_mru(file_with_line)
-    let mru_id = index(g:fs_mru_cache, a:file_with_line)
-    if mru_id != -1
-        call remove(g:fs_mru_cache, mru_id)
-    endif
-
-    call add(g:fs_mru_cache, a:file_with_line)
-endfunction
-
 function! s:fs_open_file(line, mode)
     if empty(a:line)
         hide
@@ -534,13 +523,14 @@ function! s:fs_open_file(line, mode)
     let file_with_line = split(a:line, '\s')[0]
     let file_to_open = split(file_with_line, ':')
 
-    call s:fs_cache_mru(file_with_line)
-
     hide
 
-    if file_to_open[0][0] != '/'
+    if file_with_line[0] == ':'
+        call insert(file_to_open, expand('%'))
+    elseif file_to_open[0][0] != '/'
         let file_to_open[0] = getcwd().'/'.file_to_open[0]
     endif
+
     execute(a:mode.' +'.(len(file_to_open) > 1 ? file_to_open[1] : 0).' '.fnameescape(file_to_open[0]))
 endfunction
 
@@ -600,6 +590,14 @@ function! s:fs_find_files(name, list)
                 call cursor(line('.') - 1, 1)
                 redraw
                 continue
+            elseif c == 8 " <c-h>
+                call cursor(1, 1)
+                redraw
+                continue
+            elseif c == 12 " <c-l>
+                call cursor('$', 1)
+                redraw
+                continue
             elseif c >= 32 && c <= 126
                 let next_char = nr2char(c)
                 let current_word = current_word.next_char
@@ -638,14 +636,12 @@ endfunction
 
 command! -nargs=0 FsFindFiles if len(g:fs_files) == 0 | call s:fs_cache_files() | endif | call s:fs_find_files('[files]', g:fs_files)
 command! -nargs=0 FsFindBuffers call s:fs_find_files('[buffers]', filter(map(copy(getbufinfo({'bufloaded':1})), 's:cut_working_dir(v:val.name)'), {idx, val -> strlen(val) > 0}))
-command! -nargs=0 FsFindLines call s:fs_find_files('[lines]', map(getbufline(bufnr('%'), 1, '$'), 's:cut_working_dir(expand("%")).":".v:key." ".v:val'))
-command! -nargs=0 FsFindMru call s:fs_find_files('[mru]', g:fs_mru_cache)
-command! -nargs=0 FsClearCache let g:fs_files = [] | let g:fs_mru_cache = []
+command! -nargs=0 FsFindLines call s:fs_find_files('[lines]', map(getbufline(bufnr('%'), 1, '$'), '":".eval(v:key + 1)." ".v:val'))
+command! -nargs=0 FsClearCache let g:fs_files = []
 
 nnoremap <silent> <leader>f :FsFindFiles<cr>
 nnoremap <silent> <leader>u :FsFindBuffers<cr>
 nnoremap <silent> <leader>o :FsFindLines<cr>
-nnoremap <silent> <leader>m :FsFindMru<cr>
 
 "-------------------------------------------------------------------------------
 " Version control (git) helper functions.
