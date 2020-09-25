@@ -1003,6 +1003,10 @@ function! s:enhance_c_highlight()
     " Function call
     syntax match CFunctionCall '\(\.\|->\)\?\zs\<\w\+\>\ze\s*('
     highlight! default link CFunctionCall Function
+
+    " Trailing whitespace
+    syntax match CTrailingWhiteSpace '\s\+$'
+    highlight! default link CTrailingWhiteSpace Visual
 endfunction
 
 function! s:enhance_cpp_highlight()
