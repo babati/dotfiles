@@ -40,7 +40,6 @@ augroup NetrwListing
   autocmd!
   autocmd! VimEnter * if expand('%') == '' | call s:netrw_open('.') | endif
   autocmd! FileType netrw setlocal nonumber norelativenumber bufhidden=wipe colorcolumn=0
-  autocmd! FileType netrw nnoremap ? :help netrw-quickmap<cr>
 augroup end
 
 " LSP --------------------------------------------------------------------------
@@ -291,7 +290,6 @@ nnoremap <silent> <leader>q :Bc<cr>
 
 " Search pattern in files ------------------------------------------------------
 function! s:grep_in_cwd(pattern)
-    cexpr []
     execute('silent grep! "'.a:pattern.'" '.getcwd())
     call s:open_qf_window()
 endfunction
@@ -666,7 +664,7 @@ function! s:vc_init_working_directory()
     if v:shell_error == 0
         execute('cd '.substitute(git_repo_root, '\n', '', 'g'))
         let g:vc_git_configured = v:true
-        set grepprg=git\ --no-pager\ grep\ -n\ --no-color\ -i\ $*
+        set grepprg=git\ --no-pager\ grep\ -n\ -E\ --no-color\ -i\ $*
         set grepformat=%f:%l:%m
     endif
 
