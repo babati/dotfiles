@@ -304,11 +304,45 @@ endfunction
 " Search in cwd for the given content
 command! -nargs=+ Dg call s:grep_in_cwd('<args>')
 
-" Search in cwd for work under cursor
+" Search in cwd for word under cursor
 noremap <silent> <f11> :call <sid>grep_in_cwd(expand('<cword>'))<cr>
 
-" Search in current buffer
+" Search in current buffer for word under cursor
 noremap <silent> <f12> :call <sid>grep_in_current_file(expand('<cword>'), expand('%'))<cr>
+
+" Regexp based definition search -----------------------------------------------
+if !has('nvim-0.5')
+
+let g:cpp_type_definition_pattern = '\(\(\(\<struct\>\)\|\(\<class\>\)\|\(\<enum\>\)\) \+\<$*\>\)\|\(\<using\> \+\<$*\> \+=\)\|\(\<typedef\> .* \<$*\> *;\)'
+let g:cpp_type_usage_pattern = '\<$*\>'
+let g:cpp_function_pattern = '\<$*\> *('
+
+let g:py_type_definition_pattern = 'class \+\<$*\>'
+let g:py_type_usage_pattern = '\<$*\>'
+let g:py_function_definition_pattern = 'def \+\<$*\> *('
+let g:py_function_usage_pattern = '\<$*\> *('
+
+function! s:definition_search(word, pattern, fallback_pattern)
+    call s:grep_in_cwd(a:word)
+
+    let target_pattern = substitute(a:pattern, '\$\*', a:word, 'g')
+    let qf_content = filter(getqflist(), 'v:val["text"] =~? target_pattern')
+
+    if empty(qf_content)
+        let target_pattern = substitute(a:fallback_pattern, '\$\*', a:word, 'g')
+        let qf_content = filter(getqflist(), 'v:val["text"] =~? target_pattern')
+    endif
+
+    call setqflist(qf_content)
+endfunction
+
+autocmd Filetype c,cpp noremap <silent> <buffer> <leader>j <cmd> call <sid>definition_search(expand('<cword>'), g:cpp_type_definition_pattern, g:cpp_function_pattern)<cr>
+autocmd Filetype c,cpp noremap <silent> <buffer> <leader>l <cmd> call <sid>definition_search(expand('<cword>'), g:cpp_function_pattern, g:cpp_type_usage_pattern)<cr>
+
+autocmd Filetype python noremap <silent> <buffer> <leader>j <cmd> call <sid>definition_search(expand('<cword>'), g:py_type_definition_pattern, g:py_function_definition_pattern)<cr>
+autocmd Filetype python noremap <silent> <buffer> <leader>l <cmd> call <sid>definition_search(expand('<cword>'), g:py_function_usage_pattern, g:py_type_usage_pattern)<cr>
+
+endif
 
 " Clean trailing whitespaces and last empty lines ------------------------------
 function! s:delete_trailing_whitespaces()
