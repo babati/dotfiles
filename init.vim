@@ -928,16 +928,18 @@ function! s:ce_tab_completion(direction)
 endfunction
 
 function! s:ce_handle_esc()
-    if pumvisible()
-        return empty(get(v:completed_item, 'kind', '')) ? "\<c-e>\<esc>\<esc>" : "\<c-y>\<esc>\<esc>"
+    let info = complete_info(['pum_visible', 'selected'])
+    if info['pum_visible']
+        return info['selected'] == -1 ? "\<c-e>\<esc>\<esc>" : "\<c-y>\<esc>\<esc>"
     else
         return "\<esc>"
     endif
 endfunction
 
 function! s:ce_handle_enter()
-    if pumvisible()
-        return empty(get(v:completed_item, 'kind', '')) ? "\<c-g>u\<cr>" : "\<c-y>"
+    let info = complete_info(['pum_visible', 'selected'])
+    if info['pum_visible']
+        return info['selected'] == -1 ? "\<c-g>u\<cr>" : "\<c-y>"
     else
         return "\<cr>"
     endif
