@@ -375,10 +375,18 @@ nnoremap <silent> <f1> :call <sid>find_file(expand('<cfile>'))<cr>
 
 " Quickfix window customization ------------------------------------------------
 function! s:toggle_quickfix_window()
-    if getwinvar(winnr('$'), '&buftype') == 'quickfix'
-        cclose
-    else
+    if getqflist({'winid':1}).winid == 0
         call s:open_qf_window()
+    else
+        cclose
+    endif
+endfunction
+
+function! s:toggle_loclist_window()
+    if empty(getwininfo(getloclist(0, {'winid':1}).winid))
+        lopen
+    else
+        lclose
     endif
 endfunction
 
@@ -389,6 +397,7 @@ augroup QfCustomization
     autocmd WinEnter * if winnr('$') == 1 && &buftype == "quickfix" | quit | endif
 augroup end
 
+noremap <silent> <f9> :call <sid>toggle_loclist_window()<cr>
 noremap <silent> <f10> :call <sid>toggle_quickfix_window()<cr>
 
 "-------------------------------------------------------------------------------
