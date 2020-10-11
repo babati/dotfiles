@@ -29,12 +29,12 @@ HISTCONTROL=ignoredups:erasedups
 # Colors
 RESET="\[\017\]"
 NORMAL="\[\033[0m\]"
-RED="\[$(tput setaf 131)\]"
-GREEN="\[$(tput setaf 66)\]"
-PURPLE="\[$(tput setaf 60)\]"
-BLUE="\[$(tput setaf 116)\]"
-DARKBLUE="\[$(tput setaf 25)\]"
-WHITE="\[$(tput setaf 15)\]"
+RED="\033[38;5;131m"
+GREEN="\033[38;5;66m"
+PURPLE="\033[38;5;60m"
+BLUE="\033[38;5;116m"
+DARKBLUE="\033[38;5;25m"
+WHITE="\033[38;5;15m"
 
 # Return value
 STATUS_OK="${GREEN}>${NORMAL}"
