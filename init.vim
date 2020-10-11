@@ -539,10 +539,13 @@ command! -nargs=0 StopRunningJobs call s:jr_stop_running_jobs()
 command! -nargs=0 ShowRunningJob call s:log('[Async] Running job id:'.(g:jr_qf_job_id > 0 ? g:jr_qf_job_id : 'NONE'))
 command! -nargs=0 ShowRunningDaemons call s:log('[Async] Running daemons:'.(len(g:jr_daemon_job_ids) > 0 ? join(g:jr_daemon_job_ids, ',') : 'NONE'))
 
-command! -nargs=0 CTex StartJob pdflatex %
 command! -nargs=0 Make StartJob make
 
 autocmd FileType qf nnoremap <silent> <c-c> :StopRunningJobs<cr>
+
+" TeX
+command! -nargs=0 CTex execute('StartJob pdflatex -interaction=nonstopmode '.expand('%'))
+autocmd FileType tex setlocal spell spelllang=en_us
 
 endif
 
