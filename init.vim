@@ -764,36 +764,41 @@ function! s:vc_fill_git_buffer(filetype, ...)
     setlocal nomodifiable
 endfunction!
 
-function! s:vc_git_show(commit_hash)
-    enew
-    execute('file [show '.a:commit_hash.']')
-    call s:vc_fill_git_buffer('git',
-                \ 'git show --pretty=fuller --stat '.a:commit_hash,
-                \ 'git show --pretty=format:"" '.a:commit_hash)
-    call cursor(1, 1)
-endfunction
-
-function! s:vc_git_show_inplace()
-    let current_hash = substitute(split(getbufline(bufnr('%'), line('.'))[0], '\s')[0], '\^', '', '')
+function! s:vc_git_show_inplace(current_file, current_line)
+    let commit_hash = substitute(split(getbufline(bufnr('%'), line('.'))[0], '\s')[0], '\^', '', '')
     quit
-    call s:vc_git_show(current_hash)
-    nnoremap <silent> <buffer> q :call <sid>erase_buffer(0)<cr>
+
+    enew
+
+    let b:current_file = a:current_file
+    let b:current_line = a:current_line
+
+    execute('file [show '.commit_hash.']')
+    call s:vc_fill_git_buffer('git',
+                \ 'git show --pretty=fuller --stat '.commit_hash,
+                \ 'git show --pretty=format:"" '.commit_hash)
+    call cursor(1, 1)
+
+    nnoremap <silent> <buffer> q :execute('edit +'.b:current_line.' '.b:current_file)<cr>
 endfunction!
 
 function! s:vc_git_blame(current_file)
-    let current_line = line('.') - 1
+    let current_line = line('.')
 
     set scrollbind
 
     42vnew [blame]
     call s:vc_fill_git_buffer('gitrebase', 'git blame -f -c '.a:current_file)
 
-    nnoremap <silent> <buffer> <Enter> :call <sid>vc_git_show_inplace()<cr>
+    let b:current_file = a:current_file
+    let b:current_line = current_line
+
+    nnoremap <silent> <buffer> <Enter> :call <sid>vc_git_show_inplace(b:current_file, b:current_line)<cr>
     nnoremap <silent> <buffer> q :q<cr>
     autocmd BufLeave <buffer> wincmd p | set noscrollbind
 
     call cursor(1, 1)
-    execute('normal '.current_line.'j')
+    execute('normal '.(current_line-1).'j')
 
     set scrollbind
     syncbind
