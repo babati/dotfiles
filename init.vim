@@ -253,10 +253,6 @@ function! s:log(data) abort
     endif
 endfunction
 
-function! s:open_qf_window()
-    botright copen
-endfunction
-
 function! s:execute_and_restore_pos(command)
     let current_line = line('.')
     let current_col = col('.')
@@ -294,18 +290,24 @@ function! s:grep_in_cwd(pattern)
     call s:open_qf_window()
 endfunction
 
+function! s:lgrep_in_cwd(pattern)
+    execute('silent lgrep! "'.a:pattern.'" '.getcwd())
+    call s:open_loclist_window()
+endfunction
+
 function! s:grep_in_current_file(pattern, filename)
     if !empty(a:filename)
-        execute('silent vimgrep "'.a:pattern.'" '.a:filename)
-        call s:open_qf_window()
+        execute('silent lvimgrep "'.a:pattern.'" '.a:filename)
+        call s:open_loclist_window()
     endif
 endfunction
 
 " Search in cwd for the given content
 command! -nargs=+ Dg call s:grep_in_cwd('<args>')
+command! -nargs=+ Dgl call s:lgrep_in_cwd('<args>')
 
 " Search in cwd for word under cursor
-noremap <silent> <f11> :call <sid>grep_in_cwd(expand('<cword>'))<cr>
+noremap <silent> <f11> :call <sid>lgrep_in_cwd(expand('<cword>'))<cr>
 
 " Search in current buffer for word under cursor
 noremap <silent> <f12> :call <sid>grep_in_current_file(expand('<cword>'), expand('%'))<cr>
@@ -314,7 +316,7 @@ noremap <silent> <f12> :call <sid>grep_in_current_file(expand('<cword>'), expand
 if !has('nvim-0.5')
 
 let g:cpp_type_definition_pattern = '\(\(\(\<struct\>\)\|\(\<class\>\)\|\(\<enum\>\)\) \+\<$*\>\)\|\(\<using\> \+\<$*\> \+=\)\|\(\<typedef\> .* \<$*\> *;\)'
-let g:cpp_type_usage_pattern = '\<$*\>'
+let g:cpp_usage_pattern = '\<$*\>'
 let g:cpp_function_pattern = '\<$*\> *('
 
 let g:py_type_definition_pattern = 'class \+\<$*\>'
@@ -323,24 +325,48 @@ let g:py_function_definition_pattern = 'def \+\<$*\> *('
 let g:py_function_usage_pattern = '\<$*\> *('
 
 function! s:definition_search(word, pattern, fallback_pattern)
-    call s:grep_in_cwd(a:word)
+    call s:lgrep_in_cwd(a:word)
 
     let target_pattern = substitute(a:pattern, '\$\*', a:word, 'g')
-    let qf_content = filter(getqflist(), 'v:val["text"] =~? target_pattern')
+    let content = filter(getloclist(0), 'v:val["text"] =~? target_pattern')
 
-    if empty(qf_content)
+    if empty(content) && !empty(a:fallback_pattern)
         let target_pattern = substitute(a:fallback_pattern, '\$\*', a:word, 'g')
-        let qf_content = filter(getqflist(), 'v:val["text"] =~? target_pattern')
+        let content = filter(getloclist(0), 'v:val["text"] =~? target_pattern')
     endif
 
-    call setqflist(qf_content)
+    call setloclist(0, content)
 endfunction
 
 autocmd Filetype c,cpp noremap <silent> <buffer> <leader>j <cmd> call <sid>definition_search(expand('<cword>'), g:cpp_type_definition_pattern, g:cpp_function_pattern)<cr>
-autocmd Filetype c,cpp noremap <silent> <buffer> <leader>l <cmd> call <sid>definition_search(expand('<cword>'), g:cpp_function_pattern, g:cpp_type_usage_pattern)<cr>
+autocmd Filetype c,cpp noremap <silent> <buffer> <leader>l <cmd> call <sid>definition_search(expand('<cword>'), g:cpp_usage_pattern, '')<cr>
 
 autocmd Filetype python noremap <silent> <buffer> <leader>j <cmd> call <sid>definition_search(expand('<cword>'), g:py_type_definition_pattern, g:py_function_definition_pattern)<cr>
 autocmd Filetype python noremap <silent> <buffer> <leader>l <cmd> call <sid>definition_search(expand('<cword>'), g:py_function_usage_pattern, g:py_type_usage_pattern)<cr>
+
+" Filename based header/source switching ---------------------------------------
+let g:c_cpp_header_extensions = ['h', 'hh', 'hpp', 'hxx']
+let g:c_cpp_source_extensions = ['cpp', 'cc', 'cxx', 'c']
+
+function! s:check_file(extensions)
+    let filename = expand('%:t:r')
+    for ext in a:extensions
+        if s:find_file(filename.'.'.ext) == 1
+            break
+        endif
+    endfor
+endfunction
+
+function! s:switch_source_header_c_cpp()
+    let current_extension = expand('%:e')
+    if index(g:c_cpp_source_extensions, current_extension) != -1
+        call s:check_file(g:c_cpp_header_extensions)
+    elseif index(g:c_cpp_header_extensions, current_extension) != -1
+        call s:check_file(g:c_cpp_source_extensions)
+    endif
+endfunction
+
+autocmd Filetype c,cpp nnoremap <silent> <f4> :call <sid>switch_source_header_c_cpp()<cr>
 
 endif
 
@@ -374,6 +400,14 @@ endfunction
 nnoremap <silent> <f1> :call <sid>find_file(expand('<cfile>'))<cr>
 
 " Quickfix window customization ------------------------------------------------
+function! s:open_qf_window()
+    botright copen
+endfunction
+
+function! s:open_loclist_window()
+    silent! lopen
+endfunction
+
 function! s:toggle_quickfix_window()
     if getqflist({'winid':1}).winid == 0
         call s:open_qf_window()
@@ -384,7 +418,8 @@ endfunction
 
 function! s:toggle_loclist_window()
     if empty(getwininfo(getloclist(0, {'winid':1}).winid))
-        lopen
+        silent! lopen
+        call s:open_loclist_window()
     else
         lclose
     endif
