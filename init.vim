@@ -216,6 +216,9 @@ nnoremap <silent> <f3> :bnext <cr>
 tnoremap <esc><esc> <c-\><c-n>
 
 "=============================== Commands ======================================
+" Open file at last position
+autocmd BufReadPost * if line("'\"") >= 1 && line("'\"") <= line("$") | execute "normal! g`\"" | endif
+
 " Json pretty printer ----------------------------------------------------------
 if executable('python')
     command! -range Jsonpp execute(<line1>.','.<line2>.'!python -m json.tool')
@@ -610,7 +613,11 @@ function! s:fs_open_file(line, mode)
         let file_to_open[0] = getcwd().'/'.file_to_open[0]
     endif
 
-    execute(a:mode.' +'.(len(file_to_open) > 1 ? file_to_open[1] : 0).' '.fnameescape(file_to_open[0]))
+    if len(file_to_open) > 1
+        execute(a:mode.' +'.file_to_open[1].' '.fnameescape(file_to_open[0]))
+    else
+        execute(a:mode.' '.fnameescape(file_to_open[0]))
+    endif
 endfunction
 
 function! s:fs_fill_search_window(pattern, files)
