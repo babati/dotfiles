@@ -194,7 +194,7 @@ inoremap <left> <nop>
 inoremap <right> <nop>
 
 " Managing tabs
-nnoremap <silent> <leader>c :tabnew<cr>
+nnoremap <silent> <leader>c :cclose<cr>:lclose<cr>:tabnew<cr>
 nnoremap <silent> <leader>xy :tabclose<cr>
 nnoremap <silent> <leader>n :tabnext<cr>
 nnoremap <silent> <leader>p :tabprevious<cr>
@@ -651,6 +651,8 @@ function! s:fs_find_files(name, list)
 
     autocmd BufLeave <buffer> wincmd p
 
+    let matching_mode = 0
+
     while 1
         echo '> '.current_word
 
@@ -708,10 +710,11 @@ function! s:fs_find_files(name, list)
 
         call s:execute_and_restore_pos('%delete _')
 
-        let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list, 0)
+        let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list, matching_mode)
 
-        if empty(files)
-            let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list, 1)
+        if empty(files) && matching_mode == 0
+            let matching_mode = 1
+            let [pattern, files] = s:fs_get_matching_files(escape(current_word, '.'), a:list, matching_mode)
         endif
         call s:fs_fill_search_window(pattern, files)
     endwhile
