@@ -404,15 +404,17 @@ nnoremap <silent> <f1> :call <sid>find_file(expand('<cfile>'))<cr>
 
 " Quickfix window customization ------------------------------------------------
 function! s:open_qf_window()
-    botright copen
+    botright copen10
 endfunction
 
 function! s:open_loclist_window()
-    silent! lopen
+    silent! lopen10
 endfunction
 
 function! s:toggle_quickfix_window()
-    if getqflist({'winid':1}).winid == 0
+    let qf_winid = getqflist({'winid':1})
+
+    if empty(qf_winid) || qf_winid.winid == 0
         call s:open_qf_window()
     else
         cclose
@@ -420,7 +422,9 @@ function! s:toggle_quickfix_window()
 endfunction
 
 function! s:toggle_loclist_window()
-    if empty(getwininfo(getloclist(0, {'winid':1}).winid))
+    let loclist_winid = getloclist(0, {'winid':1})
+
+    if empty(loclist_winid) || empty(getwininfo(loclist_winid.winid))
         silent! lopen
         call s:open_loclist_window()
     else
