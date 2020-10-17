@@ -1,0 +1,100 @@
+*fsp.txt* Fsp: file search plugin
+===============================================================================
+CONTENTS                                                         *fsp-contents*
+
+1. Introduction                                              |fsp-introduction|
+2. Options                                                        |fsp-options|
+3. Commands                                                      |fsp-commands|
+4. Mappings                                                      |fsp-mappings|
+
+===============================================================================
+INTRODUCTION                                                 *fsp-introduction*
+A minimal file search plugin.
+Files, buffers and lines can be searched.
+The search strategy can be:
+- exact: matches on the provided character sequence
+- "fuzzy": matches on characters in the given order, but other characters can be inserted between them.
+The strategy is selected automatically.
+
+===============================================================================
+OPTIONS                                                           *fsp-options*
+-------------------------------------------------------------------------------
+*g:fsp_number_of_matches*
+
+Maximum number of displayed matches.
+Default is 10.
+
+-------------------------------------------------------------------------------
+*g:fsp_search_commands*
+
+Commands to list files in the working directory.
+The priority is decided by the position in the list.
+If it is empty or none of them work, the built-in Vim script glob is used.
+Default is ['git ls-files -co', 'find'].
+
+===============================================================================
+COMMANDS                                                         *fsp-commands*
+-------------------------------------------------------------------------------
+*:FspFiles*
+
+Find files in the current directory recursively, files are loaded at the first execution.
+
+-------------------------------------------------------------------------------
+*:FspBuffers*
+
+Find files which are already opened.
+
+-------------------------------------------------------------------------------
+*:FspLines*
+
+Find lines in the current file.
+
+-------------------------------------------------------------------------------
+*:FspCache*
+Clear files cache.
+
+===============================================================================
+MAPPINGS                                                         *fsp-mappings*
+
+These are the default mappings, but they can be remapped.
+-------------------------------------------------------------------------------
+<leader>f
+
+Open file search window |:FspFiles|
+
+-------------------------------------------------------------------------------
+<leader>u
+
+Open buffer search window |:FspBuffers|
+
+-------------------------------------------------------------------------------
+<leader>o
+
+Open line search window |:FspLines|
+
+-------------------------------------------------------------------------------
+In the search window:
+
+<c-h>
+  Select first file.
+
+<c-j>
+  Select file above.
+
+<c-k>
+  Select file below.
+
+<c-l>
+  Select last file.
+
+<enter>
+  Open the selected file in the last split.
+
+<c-v>
+  Open the selected file in a vertical split.
+
+<esc>
+  Close search window.
+
+<backspace>
+  Remove the last character.
