@@ -9,6 +9,7 @@ CONTENTS                                                         *fsp-contents*
 
 ===============================================================================
 INTRODUCTION                                                 *fsp-introduction*
+
 A minimal file search plugin.
 Files, buffers and lines can be searched.
 The search strategy can be:

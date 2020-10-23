@@ -43,6 +43,7 @@ augroup NetrwListing
 augroup end
 
 set rtp+=/local/data/dotfiles/fsp
+set rtp+=/local/data/dotfiles/mcp
 
 " LSP --------------------------------------------------------------------------
 if has('nvim-0.5')
@@ -719,132 +720,6 @@ command! -nargs=? Gvdiff call s:execute_and_restore_pos('call s:vc_git_diff(expa
 command! -nargs=0 Gmerge call s:vc_git_merge()
 
 endif
-
-"-------------------------------------------------------------------------------
-" Completion engine, uses the builtin completefunc.
-" Automatically shows the completion popup.
-" Custom completion sources can registered in order to extend the completion.
-" By default keyword completion is active, it caches the unique keywords from every document at open and write.
-
-" Mappings:
-" - <tab>: open popup or move to next item
-" - <s-tab>: open popup or move to previous item
-" - <cr>: accept completion
-" - <esc>: cancel completion
-" - <c-c>: accept/cancel completion
-"-------------------------------------------------------------------------------
-let g:ce_keywords = {  'a': [], 'b': [], 'c': [], 'd': [], 'e': [], 'f': [], 'g': [], 'h': [], 'i': [],
-            \ 'j': [], 'k': [], 'l': [], 'm': [], 'n': [], 'o': [], 'p': [], 'q': [], 'r': [], 's': [],
-            \ 't': [], 'u': [], 'v': [], 'w': [], 'x': [], 'y': [], 'z': [], '_': [],
-            \ '0': [], '1': [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8': [], '9': [] }
-let g:ce_max_items = 10
-let g:ce_max_file_size = 1024000 " bytes
-let g:ce_completion_time_limit = 0.005 " sec
-let g:ce_last_insertion = reltime()
-
-set completeopt=menuone,noselect                " show popup with one match
-set shortmess+=ac                               " hide completion message
-call execute('set pumheight='.g:ce_max_items)   " max height of popup
-set completefunc=CeKeywordComplete
-
-function! CeKeywordComplete(findstart, base)
-    return a:findstart ? <sid>ce_find_word_start() : <sid>ce_collect_matching_words(a:base)
-endfunction
-
-function! s:ce_find_word_start()
-    let line = getline('.')
-    let start = col('.') - 1
-    while start > 0 && line[start - 1] =~? '\w'
-        let start -= 1
-    endwhile
-    return start
-endfunction!
-
-function! s:ce_collect_matching_words(base)
-    let result = []
-    if a:base[0] =~? '\w'
-        let result = copy(g:ce_keywords[tolower(a:base[0])])
-        call filter(result, 'v:val =~? "^".a:base')
-    endif
-    return { 'words': result, 'refresh': 'always' }
-endfunction
-
-function! s:ce_cache_keywords()
-    if getfsize(expand('%')) < g:ce_max_file_size
-        let keywords = uniq(sort(split(join(getline(1,'$'), ' '), '\W\+')))
-        call map(keywords, 'add(g:ce_keywords[tolower(v:val[0])], v:val)')
-        call map(g:ce_keywords, 'uniq(sort(v:val))')
-    endif
-endfunction
-
-function! s:ce_is_completion_enabled(elapsed_time)
-    return a:elapsed_time > g:ce_completion_time_limit &&
-         \ !pumvisible() &&
-         \ !(&buftype ==? 'nofile')
-endfunction
-
-function! s:ce_get_completion_type(current_char)
-    let elapsed_time = reltimefloat(reltime(g:ce_last_insertion))
-    let g:ce_last_insertion = reltime()
-    if s:ce_is_completion_enabled(elapsed_time)
-        if a:current_char == '/'
-            return "\<c-x>\<c-f>"
-        else
-            return "\<c-x>\<c-u>"
-        endif
-    endif
-    return ''
-endfunction
-
-function! s:ce_start_completion()
-    call feedkeys(s:ce_get_completion_type(v:char))
-endfunction
-
-function! s:ce_tab_completion(direction)
-    if pumvisible()
-        return a:direction == 1 ? "\<c-p>" : "\<c-n>"
-    else
-        let line = getline('.')
-        let col = col('.')
-
-        if (col == 1) || (line[col - 2] =~? '\s')
-            return "\<tab>"
-        else
-            return s:ce_get_completion_type(line[col - 2])
-        endif
-    endif
-endfunction
-
-function! s:ce_handle_esc()
-    let info = complete_info(['pum_visible', 'selected'])
-    if info['pum_visible']
-        return info['selected'] == -1 ? "\<c-e>\<esc>\<esc>" : "\<c-y>\<esc>\<esc>"
-    else
-        return "\<esc>"
-    endif
-endfunction
-
-function! s:ce_handle_enter()
-    let info = complete_info(['pum_visible', 'selected'])
-    if info['pum_visible']
-        return info['selected'] == -1 ? "\<c-g>u\<cr>" : "\<c-y>"
-    else
-        return "\<cr>"
-    endif
-endfunction
-
-augroup CompletionEngine
-    autocmd!
-    autocmd InsertEnter * let g:ce_last_insertion = reltime()
-    autocmd InsertCharPre * call s:ce_start_completion()
-    autocmd BufReadPost,BufWritePost * call s:ce_cache_keywords()
-augroup end
-
-inoremap <expr> <silent> <tab> <sid>ce_tab_completion(-1)
-inoremap <expr> <silent> <s-tab> <sid>ce_tab_completion(1)
-inoremap <expr> <silent> <cr> <sid>ce_handle_enter()
-inoremap <expr> <silent> <esc> <sid>ce_handle_esc()
-inoremap <expr> <silent> <c-c> pumvisible() ? "\<c-e>" : "\<c-c>"
 
 "-------------------------------------------------------------------------------
 " Highlight cword in idle time.

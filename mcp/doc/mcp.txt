@@ -1,0 +1,60 @@
+*mcp.txt* Mcp: Minimal completion plugin
+===============================================================================
+CONTENTS                                                         *mcp-contents*
+
+1. Introduction                                              |mcp-introduction|
+2. Options                                                        |mcp-options|
+3. Commands                                                      |mcp-commands|
+4. Mappings                                                      |mcp-mappings|
+
+===============================================================================
+INTRODUCTION                                                 *mcp-introduction*
+
+Minimal completion engine which uses the builtin completefunc.
+Automatically shows the completion popup.
+It provides keyword completion by default,
+which caches the unique keywords from every document at file open and save.
+The completion source can be overriden by setting the 'completefunc' option.
+
+===============================================================================
+OPTIONS                                                           *mcp-options*
+-------------------------------------------------------------------------------
+*g:mcp_max_items *
+
+Maximum number of displayed completion items.
+Default is 10.
+
+-------------------------------------------------------------------------------
+*g:mcp_max_file_size *
+
+Maximum file size which can be cached.
+Bigger files will not be cached.
+Default is 1mb.
+
+===============================================================================
+MAPPINGS                                                         *mcp-mappings*
+
+-------------------------------------------------------------------------------
+<tab>
+
+Start completion or move to the next completion item if the popup is already diplayed.
+
+-------------------------------------------------------------------------------
+<s-tab>
+
+Start completion or move to the previous completion item if the popup is already diplayed.
+
+-------------------------------------------------------------------------------
+<enter>
+
+Select current completion item.
+
+-------------------------------------------------------------------------------
+<esc>
+
+Select current completion item or cancel the completion if none of them selected.
+
+-------------------------------------------------------------------------------
+<c-c>
+
+Cancel the completion.
