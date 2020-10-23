@@ -44,6 +44,7 @@ augroup end
 
 set rtp+=/local/data/dotfiles/fsp
 set rtp+=/local/data/dotfiles/mcp
+set rtp+=/local/data/dotfiles/tep
 
 " LSP --------------------------------------------------------------------------
 if has('nvim-0.5')
@@ -221,6 +222,13 @@ tnoremap <esc><esc> <c-\><c-n>
 "=============================== Commands ======================================
 " Open file at last position
 autocmd BufReadPost * if line("'\"") >= 1 && line("'\"") <= line("$") | execute "normal! g`\"" | endif
+
+" Enable spelling for tex files
+autocmd FileType tex setlocal spell spelllang=en_us
+
+" Custom make commands
+command! -nargs=0 Make StartQfTask make
+command! -nargs=0 CTex execute('StartQfTask pdflatex -interaction=nonstopmode '.expand('%'))
 
 " Json pretty printer ----------------------------------------------------------
 if executable('python')
@@ -444,120 +452,6 @@ augroup end
 
 noremap <silent> <f9> :call <sid>toggle_loclist_window()<cr>
 noremap <silent> <f10> :call <sid>toggle_quickfix_window()<cr>
-
-"-------------------------------------------------------------------------------
-" Asyncron job runner, custom commands can be executed in the background.
-" There are two types:
-" - qf job: that's output is loaded into the quickfix window
-"           control sequences and colorcodes are filtered out from the output
-"           one can run at a time
-" - daemon job: output is ignored, multiple instances can be executed simultanously
-
-" Commands:
-" - StartJob: start a 'qf job'
-" - StartDaemon: start a 'daemon job'
-" - StopRunningJobs: stop all running job
-" - ShowRunningJob: show running qf job id
-" - ShowRunningDaemons: show running daemon job ids
-" - CTex: execute 'pdflatex' on the current file
-" - Make: execute 'make' in the current working directory
-
-" Mappings:
-" <c-c> (in quickfix window): stop all running jobs
-"-------------------------------------------------------------------------------
-if has('nvim')
-
-let g:jr_qf_job_id = 0
-let g:jr_daemon_job_ids = []
-let g:jr_scrolling = 1
-
-function! s:jr_start_job(command, callbacks)
-    return jobstart(split(a:command, '\s'), a:callbacks)
-endfunction
-
-function! s:jr_on_event_qf(job_id, data, event) dict
-    let g:jr_scrolling = &filetype != 'qf' || line('.') == line('$')
-
-    for line in a:data
-        caddexpr substitute(line, '\%\x1b\[[0-9;]*[mKGHF]', '', 'g')
-    endfor
-
-    if g:jr_scrolling
-        cbottom
-    endif
-endfunction
-
-function! s:jr_on_exit_qf(job_id, data, event) dict
-    let g:jr_qf_job_id = 0
-    caddexpr '['.a:job_id.'] Exited with code '.a:data
-
-    if g:jr_scrolling
-        cbottom
-    endif
-endfunction
-
-function! s:jr_start_qf_job(command)
-    let s:jr_qf_callbacks = {
-        \ 'on_stdout': function('s:jr_on_event_qf'),
-        \ 'on_stderr': function('s:jr_on_event_qf'),
-        \ 'on_exit': function('s:jr_on_exit_qf')
-    \ }
-
-    if g:jr_qf_job_id == 0
-        cexpr []
-        caddexpr a:command
-        call s:open_qf_window()
-        let g:jr_qf_job_id =s:jr_start_job(a:command, s:jr_qf_callbacks)
-    else
-        call s:log('[Async] A job is already runnning, id:'.g:jr_qf_job_id)
-    endif
-endfunction
-
-function! s:jr_on_exit_daemon(job_id, data, event) dict
-    let list_id = index(g:jr_daemon_job_ids, a:job_id)
-    if list_id != -1
-        call remove(g:jr_daemon_job_ids, list_id)
-    endif
-endfunction
-
-function! s:jr_start_daemon(command)
-    let s:jr_daemon_callbacks = {
-        \ 'on_exit': function('s:jr_on_exit_daemon')
-    \ }
-
-    let job_id = s:jr_start_job(a:command, s:jr_daemon_callbacks)
-    if job_id > 0
-        call insert(g:jr_daemon_job_ids, job_id)
-    endif
-endfunction
-
-function! s:jr_stop_running_jobs()
-    if g:jr_qf_job_id != 0
-        call jobstop(g:jr_qf_job_id)
-        let g:jr_qf_job_id = 0
-    endif
-
-    for id in g:jr_daemon_job_ids
-        call jobstop(id)
-    endfor
-    let g:jr_daemon_job_ids = []
-endfunction
-
-command! -nargs=+ StartJob call s:jr_start_qf_job('<args>')
-command! -nargs=+ StartDaemon call s:jr_start_daemon('<args>')
-command! -nargs=0 StopRunningJobs call s:jr_stop_running_jobs()
-command! -nargs=0 ShowRunningJob call s:log('[Async] Running job id:'.(g:jr_qf_job_id > 0 ? g:jr_qf_job_id : 'NONE'))
-command! -nargs=0 ShowRunningDaemons call s:log('[Async] Running daemons:'.(len(g:jr_daemon_job_ids) > 0 ? join(g:jr_daemon_job_ids, ',') : 'NONE'))
-
-command! -nargs=0 Make StartJob make
-
-autocmd FileType qf nnoremap <silent> <c-c> :StopRunningJobs<cr>
-
-" TeX
-command! -nargs=0 CTex execute('StartJob pdflatex -interaction=nonstopmode '.expand('%'))
-autocmd FileType tex setlocal spell spelllang=en_us
-
-endif
 
 "-------------------------------------------------------------------------------
 " Version control (git) helper functions.

@@ -1,0 +1,48 @@
+*tep.txt* Tep: task executor plugin
+===============================================================================
+CONTENTS                                                         *tep-contents*
+
+1. Introduction                                              |tep-introduction|
+2. Commands                                                      |tep-commands|
+3. Mappings                                                      |tep-mappings|
+
+===============================================================================
+INTRODUCTION                                                 *tep-introduction*
+
+Async task executor which can execute custom commands in the background.
+There are two task types:
+- quickfix task: the output is loaded into the quickfix window
+          control sequences and colorcodes are filtered out from the output
+          one can run at a time
+- daemon task: output is ignored, multiple instances can be executed simultaneously
+
+===============================================================================
+COMMANDS                                                         *tep-commands*
+-------------------------------------------------------------------------------
+*:StartQfTask*
+
+Start a task in the background which loads the output into the quickfix window.
+
+-------------------------------------------------------------------------------
+*:StartDaemon*
+
+Start a background task, its output is ignored.
+
+-------------------------------------------------------------------------------
+*:StopRunningTasks*
+Stop all running tasks.
+
+-------------------------------------------------------------------------------
+*:ShowRunningQfTask*
+Show a log message about the currently executing quickfix task.
+
+-------------------------------------------------------------------------------
+*:ShowRunningDaemons*
+Show a log message about the currently executing daemon tasks.
+
+===============================================================================
+MAPPINGS                                                         *tep-mappings*
+-------------------------------------------------------------------------------
+<c-c>
+
+In the quickfix window, it can abort the running tasks.
