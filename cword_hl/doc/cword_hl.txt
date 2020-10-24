@@ -1,0 +1,47 @@
+*cword_hl.txt* cword_hl: Cword highlight and search plugin
+===============================================================================
+CONTENTS                                                         *cword_hl-contents*
+
+1. Introduction                                              |cword_hl-introduction|
+2. Options                                                        |cword_hl-options|
+3. Mappings                                                      |cword_hl-mappings|
+
+===============================================================================
+INTRODUCTION                                                 *cword_hl-introduction*
+
+If the cursor is idle for the given time, the word under the cursor will be highlighted.
+When the cursor moves, the highlight is automatically turned off.
+The searching does not jump to the next match automatically.
+The visual selection can be searched as well.
+
+===============================================================================
+OPTIONS                                                           *cword_hl-options*
+-------------------------------------------------------------------------------
+*g:cword_hl_timeout *
+
+Idle time for cword highlighting.
+Default is 1000 msec.
+
+===============================================================================
+MAPPINGS                                                         *cword_hl-mappings*
+
+-------------------------------------------------------------------------------
+<f8>
+
+Turn off the highlight.
+
+-------------------------------------------------------------------------------
+#
+*
+
+Search the word under the cursor.
+
+-------------------------------------------------------------------------------
+n
+
+Jump to the next match.
+
+-------------------------------------------------------------------------------
+N
+
+Jump to the previous match.

@@ -46,6 +46,7 @@ set rtp+=/local/data/dotfiles/fsp
 set rtp+=/local/data/dotfiles/mcp
 set rtp+=/local/data/dotfiles/tep
 set rtp+=/local/data/dotfiles/quickfix_cust
+set rtp+=/local/data/dotfiles/cword_hl
 
 " LSP --------------------------------------------------------------------------
 if has('nvim-0.5')
@@ -575,71 +576,6 @@ command! -nargs=? Gvdiff call s:execute_and_restore_pos('call s:vc_git_diff(expa
 command! -nargs=0 Gmerge call s:vc_git_merge()
 
 endif
-
-"-------------------------------------------------------------------------------
-" Highlight cword in idle time.
-" Cword searching does not jump to the next match.
-" The visual selection can be searched just like cword.
-
-" Mappings:
-" - <f8>: turn of highlight
-" - n: go to the next match
-" - N: go to the previous match
-" - #/*: search cword or selection
-"-------------------------------------------------------------------------------
-set updatetime=1000
-
-augroup CwordHighlight
-    autocmd!
-    autocmd! CursorHold * call s:hl_highlight_cword()
-    autocmd! CursorMoved,InsertEnter * highlight! def link EmphasizedCword NONE | syntax clear EmphasizedCword
-augroup end
-
-function! s:hl_highlight_cword()
-    if &buftype == '' && &diff == 0 " normal buffer and diff is not active
-        let current_char = getline('.')[col('.') - 1]
-        let current_word = expand('<cword>')
-
-        if current_word =~? current_char && current_word =~? '^\w\+$' && !(getreg('/') =~? current_word)
-            highlight! def link EmphasizedCword Visual
-            execute('match EmphasizedCword "\<'.current_word.'\>"')
-        endif
-    endif
-endfunction
-
-function! s:hl_turn_off()
-    nohlsearch
-    diffupdate
-    call setreg('/', '')
-endfunction
-
-function! s:hl_next_match(key)
-    if empty(getreg('/'))
-        call setreg('/', histget('search', -1))
-    endif
-    call feedkeys(a:key, 'n')
-endfunction
-
-function! s:hl_search_visual_selection() range
-    let start_pos = getpos("'<")
-    let end_pos = getpos("'>")
-
-    let lines = getline(start_pos[1], end_pos[1])
-    let lines[-1] = strpart(lines[-1], 0, end_pos[2])
-    let lines[0] = strpart(lines[0], start_pos[2] - 1)
-
-    return escape(join(lines, '\n'), '/.*$^~[]')
-endfunction
-
-nnoremap <silent> <f8> :call <sid>hl_turn_off()<cr>
-nnoremap <silent> n :call <sid>hl_next_match('n')<cr>
-nnoremap <silent> N :call <sid>hl_next_match('N')<cr>
-
-nnoremap <silent> # :call setreg('/', '\<'.expand('<cword>').'\>')<cr>:call histadd('search', expand('<cword>'))<cr>:set hlsearch<cr>
-nmap <silent> * #
-
-vnoremap <silent> # :call setreg('/', <sid>hl_search_visual_selection())<cr>:call histadd('search', getreg('/'))<cr>:set hlsearch<cr>
-vmap <silent> * #
 
 "-------------------------------------------------------------------------------
 " Syntax highlight improvements.
