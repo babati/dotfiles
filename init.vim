@@ -49,6 +49,7 @@ set rtp+=/local/data/dotfiles/quickfix_cust
 set rtp+=/local/data/dotfiles/cword_hl
 set rtp+=/local/data/dotfiles/colorscheme
 set rtp+=/local/data/dotfiles/syntax_imp
+set rtp+=/local/data/dotfiles/git_fn
 
 let g:bgc_enable_statusline_customization = 1
 colorscheme bgc
@@ -251,11 +252,6 @@ command! -nargs=1 StartProfiling profile start <args> | profile func * | profile
 "======================= Common config/functions ===============================
 let g:log_file = ''
 
-function! s:setup_scratch_buffer(type)
-    execute('set filetype='.a:type)
-    setlocal nonumber norelativenumber buftype=nofile bufhidden=wipe nobuflisted colorcolumn=0
-endfunction
-
 function! s:clear_cmd_line()
     redraw
     echo ' '
@@ -419,165 +415,3 @@ endfunction
 
 " Jump to file under cursor
 nnoremap <silent> <f1> :call <sid>find_file(expand('<cfile>'))<cr>
-
-"-------------------------------------------------------------------------------
-" Version control (git) helper functions.
-" The current working directory is set to the repository root if the editor was opened in one.
-
-" Commands:
-" - Gblame: show blame information for the current file
-" - Gvdiff: show the current file compared to a given revision
-" - Gmerge: find conflicting files and load them into the quickfix window
-
-" Mappings:
-" - q: close current view
-" - <enter>: show commit in blame view
-"-------------------------------------------------------------------------------
-if executable('git')
-
-let g:vc_git_configured = v:false
-
-function! s:vc_init_working_directory()
-    let git_repo_root = system('git rev-parse --show-toplevel')
-
-    if v:shell_error == 0
-        execute('cd '.substitute(git_repo_root, '\n', '', 'g'))
-        let g:vc_git_configured = v:true
-        set grepprg=git\ --no-pager\ grep\ -n\ -E\ --no-color\ -i\ $*
-        set grepformat=%f:%l:%m
-    endif
-
-    unlet git_repo_root
-endfunction
-
-function! s:vc_fill_git_buffer(filetype, ...)
-    call s:setup_scratch_buffer(a:filetype)
-
-    for cmd in a:000
-        let output = system(cmd)
-        silent! put =output
-    endfor
-
-    call s:execute_and_restore_pos('1delete _')
-    setlocal nomodifiable
-endfunction!
-
-function! s:vc_git_show_inplace(current_file, current_line)
-    let commit_hash = substitute(split(getbufline(bufnr('%'), line('.'))[0], '\s')[0], '\^', '', '')
-    quit
-
-    enew
-
-    let b:current_file = a:current_file
-    let b:current_line = a:current_line
-
-    execute('file [show '.commit_hash.']')
-    call s:vc_fill_git_buffer('git',
-                \ 'git show --pretty=fuller --stat '.commit_hash,
-                \ 'git show --pretty=format:"" '.commit_hash)
-    call cursor(1, 1)
-
-    nnoremap <silent> <buffer> q :execute('edit +'.b:current_line.' '.b:current_file)<cr>
-endfunction!
-
-function! s:vc_git_blame(current_file)
-    let current_line = line('.')
-
-    set scrollbind
-
-    42vnew [blame]
-    call s:vc_fill_git_buffer('gitrebase', 'git blame -f -c '.a:current_file)
-
-    let b:current_file = a:current_file
-    let b:current_line = current_line
-
-    nnoremap <silent> <buffer> <Enter> :call <sid>vc_git_show_inplace(b:current_file, b:current_line)<cr>
-    nnoremap <silent> <buffer> q :q<cr>
-    autocmd BufLeave <buffer> wincmd p | set noscrollbind
-
-    call cursor(1, 1)
-    execute('normal '.(current_line-1).'j')
-
-    set scrollbind
-    syncbind
-endfunction
-
-function! s:vc_git_diff(current_file, revision)
-    let filetype = &filetype
-    let current_line = line('.')
-    diffthis
-
-    execute('vnew [diff '.(empty(a:revision) ? 'HEAD' : a:revision).']')
-    call s:vc_fill_git_buffer(filetype, 'git show '.a:revision.':'.s:cut_working_dir(a:current_file))
-    diffthis
-
-    nnoremap <silent> <buffer> q :diffoff!<cr>:q<cr>
-endfunction
-
-function! s:vc_git_merge()
-    let conflicting_files = systemlist('git diff --no-ext-diff --no-color --name-only --diff-filter=U')
-    cexpr []
-
-    if !empty(conflicting_files)
-        for file in conflicting_files
-            let markers = systemlist(substitute(&grepprg, '\$\*', '"<<<<<<<" '.file, ''))
-            if !empty(markers)
-                caddexpr markers[0]
-            endif
-        endfor
-        botright copen
-    else
-        call s:log('[Git] No conflicting file has been found.')
-    endif
-endfunction
-
-sign define Added text=+ texthl=Structure
-sign define Modified text=~ texthl=Type
-sign define Removed text=_ texthl=WarningMsg
-
-function! s:vc_extract_changes_from_diff(diff_line)
-    let splitted = split(a:diff_line, ',')
-    let line = splitted[0]
-    let count = len(splitted) > 1 ? splitted[1] : 1
-    return count ? range(line, line + count - 1) : []
-endfunction
-
-function! s:vc_place_signs(name, filename, processed, others)
-    for line in a:processed
-        if empty(a:others) || (line < a:others[0] || line > a:others[-1])
-            execute('sign place 1 line='.line.' name='.a:name.' file='.a:filename)
-        else
-            execute('sign place 1 line='.line.' name=Modified file='.a:filename)
-        endif
-    endfor
-endfunction
-
-function! s:vc_collect_signs(filename)
-    if !g:vc_git_configured || empty(a:filename) || !executable('grep')
-        return
-    endif
-
-    execute('sign unplace * file='.a:filename)
-
-    let result = systemlist('git diff --no-ext-diff --no-color --unified=0 HEAD -- '.a:filename.' 2> /dev/null | grep -e "^@@"')
-    for change in result
-        let status = split(split(change, '@@')[0], '\s')
-        let deleted_lines = s:vc_extract_changes_from_diff(status[0][1:])
-        let added_lines = s:vc_extract_changes_from_diff(status[1][1:])
-
-        call s:vc_place_signs('Removed', a:filename, deleted_lines, added_lines)
-        call s:vc_place_signs('Added', a:filename, added_lines, deleted_lines)
-    endfor
-endfunction
-
-augroup GitWorkingDirectory
-    autocmd!
-    autocmd VimEnter * call s:vc_init_working_directory()
-    autocmd BufReadPost,BufWritePost * call s:vc_collect_signs(expand('%:p'))
-augroup end
-
-command! -nargs=0 Gblame call s:vc_git_blame(expand("%"))
-command! -nargs=? Gvdiff call s:execute_and_restore_pos('call s:vc_git_diff(expand("%"), "<args>")')
-command! -nargs=0 Gmerge call s:vc_git_merge()
-
-endif

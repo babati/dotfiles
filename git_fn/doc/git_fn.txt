@@ -1,0 +1,30 @@
+*git_fn.txt* git_fn: Git helper functions
+===============================================================================
+CONTENTS                                                         *git_fn-contents*
+
+1. Introduction                                              |git_fn-introduction|
+2. Commands                                                      |git_fn-commands|
+
+===============================================================================
+INTRODUCTION                                                 *git_fn-introduction*
+
+Git related helper functions including diff, blame, merge.
+The current working directory is set to the git repository root.
+Also it marks the modified lines with signs.
+
+===============================================================================
+COMMANDS                                                         *git_fn-commands*
+-------------------------------------------------------------------------------
+*:BlameG*
+
+Opens a left split which shows the blame information for each line.
+
+-------------------------------------------------------------------------------
+*:DiffG*
+
+Diff the current file to a given revision.
+
+-------------------------------------------------------------------------------
+*:MergeG*
+
+Find the conflicting files and load them into the quickfix window.
