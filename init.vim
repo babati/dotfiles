@@ -48,6 +48,7 @@ set rtp+=/local/data/dotfiles/tep
 set rtp+=/local/data/dotfiles/quickfix_cust
 set rtp+=/local/data/dotfiles/cword_hl
 set rtp+=/local/data/dotfiles/colorscheme
+set rtp+=/local/data/dotfiles/syntax_imp
 
 let g:bgc_enable_statusline_customization = 1
 colorscheme bgc
@@ -580,55 +581,3 @@ command! -nargs=? Gvdiff call s:execute_and_restore_pos('call s:vc_git_diff(expa
 command! -nargs=0 Gmerge call s:vc_git_merge()
 
 endif
-
-"-------------------------------------------------------------------------------
-" Syntax highlight improvements.
-" - c: member function calls, members
-" - c++: member function calls, members, scopes
-" - python: member functions calls, members
-"-------------------------------------------------------------------------------
-function! s:enhance_c_highlight()
-    " Member
-    syntax match CClassMember '\(\.\|->\)\zs\<\w\+\>\ze\s*[^(]'
-    highlight! default link CClassMember Identifier
-
-    " Function call
-    syntax match CFunctionCall '\(\.\|->\)\?\zs\<\w\+\>\ze\s*('
-    highlight! default link CFunctionCall Function
-
-    " Trailing whitespace
-    syntax match CTrailingWhiteSpace '\s\+$'
-    highlight! default link CTrailingWhiteSpace Visual
-endfunction
-
-function! s:enhance_cpp_highlight()
-    " Scopes
-    syntax match CppScopedType '::\s*\zs\<\w\+\>\ze\s*[^:]'
-    highlight! default link CppScopedType Type
-
-    syntax match CppScope '\<\w\+\>\ze\s*::'
-    highlight! default link CppScope Constant
-
-    call s:enhance_c_highlight()
-endfunction
-
-function! s:enhance_python_highlight()
-    " Member
-    syntax match PyClassMember '\.\zs\<\w\+\>'
-    highlight! default link PyClassMember Identifier
-
-    " Function call
-    syntax match PyFunctionCall '\.\?\zs\<\w\+\>\ze\s*('
-    highlight! default link PyFunctionCall Function
-
-    " Self
-    syntax keyword PySelf self
-    highlight! default link PySelf Type
-endfunction
-
-augroup EnhancedSyntaxHighlight
-    autocmd!
-    autocmd Syntax c call s:enhance_c_highlight()
-    autocmd Syntax cpp call s:enhance_cpp_highlight()
-    autocmd Syntax python call s:enhance_python_highlight()
-augroup end
