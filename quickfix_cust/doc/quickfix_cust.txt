@@ -1,0 +1,38 @@
+*quickfix_cust.txt* quickfix_cust: Quickfix window customization plugin
+===============================================================================
+CONTENTS                                                         *quickfix_cust-contents*
+
+1. Introduction                                              |quickfix_cust-introduction|
+2. Commands                                                      |quickfix_cust-commands|
+3. Mappings                                                      |quickfix_cust-mappings|
+
+===============================================================================
+INTRODUCTION                                                 *quickfix_cust-introduction*
+
+Toggling functions and settings for quickfix and location list window.
+
+===============================================================================
+COMMANDS                                                         *quickfix_cust-commands*
+-------------------------------------------------------------------------------
+*:ToggleQf*
+
+Toggle quickfix window.
+
+-------------------------------------------------------------------------------
+*:ToggleLocList*
+
+Toggle location list of the current window.
+
+===============================================================================
+MAPPINGS                                                         *quickfix_cust-mappings*
+
+These are the default mappings, but they can be remapped.
+-------------------------------------------------------------------------------
+<f9>
+
+Mapping for |ToggleLocList|.
+
+-------------------------------------------------------------------------------
+<f10>
+
+Mapping for |ToggleQf|.

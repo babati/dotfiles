@@ -45,6 +45,7 @@ augroup end
 set rtp+=/local/data/dotfiles/fsp
 set rtp+=/local/data/dotfiles/mcp
 set rtp+=/local/data/dotfiles/tep
+set rtp+=/local/data/dotfiles/quickfix_cust
 
 " LSP --------------------------------------------------------------------------
 if has('nvim-0.5')
@@ -301,18 +302,18 @@ nnoremap <silent> <leader>q :Bc<cr>
 " Search pattern in files ------------------------------------------------------
 function! s:grep_in_cwd(pattern)
     execute('silent grep! "'.a:pattern.'" '.getcwd())
-    call s:open_qf_window()
+    botright copen
 endfunction
 
 function! s:lgrep_in_cwd(pattern)
     execute('silent lgrep! "'.a:pattern.'" '.getcwd())
-    call s:open_loclist_window()
+    silent! lopen
 endfunction
 
 function! s:grep_in_current_file(pattern, filename)
     if !empty(a:filename)
         execute('silent lvimgrep "'.a:pattern.'" '.a:filename)
-        call s:open_loclist_window()
+        silent lopen
     endif
 endfunction
 
@@ -412,46 +413,6 @@ endfunction
 
 " Jump to file under cursor
 nnoremap <silent> <f1> :call <sid>find_file(expand('<cfile>'))<cr>
-
-" Quickfix window customization ------------------------------------------------
-function! s:open_qf_window()
-    botright copen10
-endfunction
-
-function! s:open_loclist_window()
-    silent! lopen10
-endfunction
-
-function! s:toggle_quickfix_window()
-    let qf_winid = getqflist({'winid':1})
-
-    if empty(qf_winid) || qf_winid.winid == 0
-        call s:open_qf_window()
-    else
-        cclose
-    endif
-endfunction
-
-function! s:toggle_loclist_window()
-    let loclist_winid = getloclist(0, {'winid':1})
-
-    if empty(loclist_winid) || empty(getwininfo(loclist_winid.winid))
-        silent! lopen
-        call s:open_loclist_window()
-    else
-        lclose
-    endif
-endfunction
-
-augroup QfCustomization
-    autocmd!
-    autocmd FileType qf setlocal wrap nonumber norelativenumber colorcolumn=0 statusline=
-    autocmd FileType qf wincmd J
-    autocmd WinEnter * if winnr('$') == 1 && &buftype == "quickfix" | quit | endif
-augroup end
-
-noremap <silent> <f9> :call <sid>toggle_loclist_window()<cr>
-noremap <silent> <f10> :call <sid>toggle_quickfix_window()<cr>
 
 "-------------------------------------------------------------------------------
 " Version control (git) helper functions.
@@ -558,7 +519,7 @@ function! s:vc_git_merge()
                 caddexpr markers[0]
             endif
         endfor
-        call s:open_qf_window()
+        botright copen
     else
         call s:log('[Git] No conflicting file has been found.')
     endif
