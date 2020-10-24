@@ -26,7 +26,7 @@ function! s:collect_matching_words(base)
 endfunction
 
 function! s:cache_keywords()
-    if getfsize(expand('%')) < g:mcp_max_file_size
+    if getfsize(expand('%')) < g:min_compl_max_file_size
         let keywords = uniq(sort(split(join(getline(1,'$'), ' '), '\W\+')))
         call map(keywords, 'add(s:keywords[tolower(v:val[0])], v:val)')
         call map(s:keywords, 'uniq(sort(v:val))')
@@ -50,10 +50,10 @@ function! s:start_completion()
     call feedkeys(s:get_completion_type(v:char))
 endfunction
 
-function! mcp#initialize()
+function! min_compl#initialize()
     set completeopt=menuone,noselect                " show popup with one match
     set shortmess+=ac                               " hide completion message
-    call execute('set pumheight='.g:mcp_max_items)   " max height of popup
+    call execute('set pumheight='.g:min_compl_max_items)   " max height of popup
     set completefunc=CeKeywordComplete
 
     for x in range(33, 126)
@@ -68,7 +68,7 @@ function! mcp#initialize()
     augroup end
 endfunction
 
-function! mcp#tab_completion(direction)
+function! min_compl#tab_completion(direction)
     if pumvisible()
         return a:direction == 1 ? "\<c-p>" : "\<c-n>"
     else
@@ -83,14 +83,14 @@ function! mcp#tab_completion(direction)
     endif
 endfunction
 
-function! mcp#handle_enter()
+function! min_compl#handle_enter()
     return pumvisible() ? (empty(v:completed_item['kind']) ? "\<c-g>u\<cr>" : "\<c-y>") : "\<cr>"
 endfunction
 
-function! mcp#handle_esc()
+function! min_compl#handle_esc()
     return pumvisible() ? (empty(v:completed_item['kind']) ? "\<c-e>\<esc>\<esc>" : "\<c-y>\<esc>\<esc>") : "\<esc>"
 endfunction
 
-function! mcp#handle_ctrl_c()
+function! min_compl#handle_ctrl_c()
     return pumvisible() ? "\<c-e>" : "\<c-c>"
 endfunction

@@ -1,13 +1,13 @@
-*tep.txt* Tep: task executor plugin
+*task_exec.txt* Tep: task executor plugin
 ===============================================================================
-CONTENTS                                                         *tep-contents*
+CONTENTS                                                         *task_exec-contents*
 
-1. Introduction                                              |tep-introduction|
-2. Commands                                                      |tep-commands|
-3. Mappings                                                      |tep-mappings|
+1. Introduction                                              |task_exec-introduction|
+2. Commands                                                      |task_exec-commands|
+3. Mappings                                                      |task_exec-mappings|
 
 ===============================================================================
-INTRODUCTION                                                 *tep-introduction*
+INTRODUCTION                                                 *task_exec-introduction*
 
 Async task executor which can execute custom commands in the background.
 There are two task types:
@@ -17,7 +17,7 @@ There are two task types:
 - daemon task: output is ignored, multiple instances can be executed simultaneously
 
 ===============================================================================
-COMMANDS                                                         *tep-commands*
+COMMANDS                                                         *task_exec-commands*
 -------------------------------------------------------------------------------
 *:StartQfTask*
 
@@ -41,7 +41,7 @@ Show a log message about the currently executing quickfix task.
 Show a log message about the currently executing daemon tasks.
 
 ===============================================================================
-MAPPINGS                                                         *tep-mappings*
+MAPPINGS                                                         *task_exec-mappings*
 -------------------------------------------------------------------------------
 <c-c>
 

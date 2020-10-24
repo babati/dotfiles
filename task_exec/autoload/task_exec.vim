@@ -34,7 +34,7 @@ function! s:on_exit_daemon(task_id, data, event) dict
     endif
 endfunction
 
-function! tep#start_qf_task(command)
+function! task_exec#start_qf_task(command)
     let s:qf_callbacks = {
         \ 'on_stdout': function('s:on_event_qf'),
         \ 'on_stderr': function('s:on_event_qf'),
@@ -51,7 +51,7 @@ function! tep#start_qf_task(command)
     endif
 endfunction
 
-function! tep#start_daemon(command)
+function! task_exec#start_daemon(command)
     let s:daemon_callbacks = { 'on_exit': function('s:on_exit_daemon') }
 
     let task_id = s:start_task(a:command, s:daemon_callbacks)
@@ -60,7 +60,7 @@ function! tep#start_daemon(command)
     endif
 endfunction
 
-function! tep#stop_running_tasks()
+function! task_exec#stop_running_tasks()
     if s:qf_task_id != 0
         call jobstop(s:qf_task_id)
         let s:qf_task_id = 0
@@ -73,10 +73,10 @@ function! tep#stop_running_tasks()
     let s:daemon_task_ids = []
 endfunction
 
-function! tep#show_running_qf_task()
+function! task_exec#show_running_qf_task()
     echom '[Async] Running quickfix task:'.(s:qf_task_id > -2 ? s:qf_task_id : 'NONE')
 endfunction
 
-function! tep#show_running_deamons()
+function! task_exec#show_running_deamons()
     echom '[Async] Running daemons:'.(len(s:daemon_task_ids) > 0 ? join(s:daemon_task_ids, ',') : 'NONE')
 endfunction

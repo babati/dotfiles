@@ -43,8 +43,8 @@ augroup NetrwListing
 augroup end
 
 set rtp+=/local/data/dotfiles/fsp
-set rtp+=/local/data/dotfiles/mcp
-set rtp+=/local/data/dotfiles/tep
+set rtp+=/local/data/dotfiles/min_compl
+set rtp+=/local/data/dotfiles/task_exec
 set rtp+=/local/data/dotfiles/quickfix_cust
 set rtp+=/local/data/dotfiles/cword_hl
 set rtp+=/local/data/dotfiles/colorscheme
