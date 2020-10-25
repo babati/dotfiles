@@ -1,0 +1,79 @@
+*search_heu.txt* search_heu: Heuristic search functions for text and files
+===============================================================================
+CONTENTS                                                         *search_heu-contents*
+1. Introduction                                              |search_heu-introduction|
+2. Commands                                                      |search_heu-commands|
+3. Mappings                                                      |search_heu-mappings|
+
+===============================================================================
+INTRODUCTION                                                 *search_heu-introduction*
+
+Search text in files or buffer.
+Search files by name in current working directory.
+It provides simple language specific searches.
+The searches are based pattern matching, it could be very inaccurate.
+- C/C++: header/source switch, token definition and usage search
+- Python: token definition and usage search
+
+===============================================================================
+COMMANDS                                                         *search_heu-commands*
+-------------------------------------------------------------------------------
+*:Bg*
+
+Search text in the current buffer and load the result into the location list.
+
+-------------------------------------------------------------------------------
+*:Dg*
+
+Search text in files and load the result into the location list.
+
+-------------------------------------------------------------------------------
+*:Dgq*
+
+Search text in files and load the result into the quickfix window.
+
+-------------------------------------------------------------------------------
+*:FindFile*
+
+Find file by name.
+
+-------------------------------------------------------------------------------
+*:DefSearch*
+
+Find the given token's definition.
+For C/C++/Python.
+
+===============================================================================
+MAPPINGS                                                         *search_heu-mappings*
+-------------------------------------------------------------------------------
+<f1>
+
+Find file under the cursor.
+
+-------------------------------------------------------------------------------
+<f4>
+
+Switch between header/source.
+For C/C++ only.
+
+-------------------------------------------------------------------------------
+<f11>
+
+Find word under the cursor in the current buffer and load the result into the location list.
+
+-------------------------------------------------------------------------------
+<f12>
+
+Find word under the cursor in files and load the result into the location list.
+
+-------------------------------------------------------------------------------
+<leader>j
+
+Find definition of the word under the cursor and load the result into the location list.
+For C/C++/Python.
+
+-------------------------------------------------------------------------------
+<leader>l
+
+Find usages of the word under the cursor and load the result into the location list.
+For C/C++/Python.

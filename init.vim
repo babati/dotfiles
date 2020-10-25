@@ -50,6 +50,7 @@ set rtp+=/local/data/dotfiles/cword_hl
 set rtp+=/local/data/dotfiles/colorscheme
 set rtp+=/local/data/dotfiles/syntax_imp
 set rtp+=/local/data/dotfiles/git_fn
+set rtp+=/local/data/dotfiles/search_heu
 
 let g:bgc_enable_statusline_customization = 1
 colorscheme bgc
@@ -249,36 +250,7 @@ command! -nargs=0 Pf echo expand('%:p')
 " Start profiling
 command! -nargs=1 StartProfiling profile start <args> | profile func * | profile file *
 
-"======================= Common config/functions ===============================
-let g:log_file = ''
-
-function! s:clear_cmd_line()
-    redraw
-    echo ' '
-endfunction
-
-function! s:cut_working_dir(path)
-    return substitute(a:path, getcwd().'/','','')
-endfunction
-
-function! s:log(data) abort
-    let line = strftime('%D-%T').' > '.a:data
-    if !empty(g:log_file)
-        call writefile([line], g:log_file, 'a')
-    else
-        echom line
-    endif
-endfunction
-
-function! s:execute_and_restore_pos(command)
-    let current_line = line('.')
-    let current_col = col('.')
-
-    execute(a:command)
-    call cursor(current_line, current_col)
-endfunction
-
-"======================== Plugin like functions ================================
+"=========================== Common functions ==================================
 " Keep window open at buffer deleting ------------------------------------------
 function! s:erase_buffer(wipe)
     let buf_num = bufnr('%')
@@ -301,93 +273,15 @@ command! -nargs=0 Bca %bwipeout!
 
 nnoremap <silent> <leader>q :Bc<cr>
 
-" Search pattern in files ------------------------------------------------------
-function! s:grep_in_cwd(pattern)
-    execute('silent grep! "'.a:pattern.'" '.getcwd())
-    botright copen
-endfunction
-
-function! s:lgrep_in_cwd(pattern)
-    execute('silent lgrep! "'.a:pattern.'" '.getcwd())
-    silent! lopen
-endfunction
-
-function! s:grep_in_current_file(pattern, filename)
-    if !empty(a:filename)
-        execute('silent lvimgrep "'.a:pattern.'" '.a:filename)
-        silent lopen
-    endif
-endfunction
-
-" Search in cwd for the given content
-command! -nargs=+ Dg call s:grep_in_cwd('<args>')
-command! -nargs=+ Dgl call s:lgrep_in_cwd('<args>')
-
-" Search in cwd for word under cursor
-noremap <silent> <f11> :call <sid>lgrep_in_cwd(expand('<cword>'))<cr>
-
-" Search in current buffer for word under cursor
-noremap <silent> <f12> :call <sid>grep_in_current_file(expand('<cword>'), expand('%'))<cr>
-
-" Regexp based definition search -----------------------------------------------
-if !has('nvim-0.5')
-
-let g:cpp_type_definition_pattern = '\(\(\(\<struct\>\)\|\(\<class\>\)\|\(\<enum\>\)\) \+\<$*\>\)\|\(\<using\> \+\<$*\> \+=\)\|\(\<typedef\> .* \<$*\> *;\)'
-let g:cpp_usage_pattern = '\<$*\>'
-let g:cpp_function_pattern = '\<$*\> *('
-
-let g:py_type_definition_pattern = 'class \+\<$*\>'
-let g:py_type_usage_pattern = '\<$*\>'
-let g:py_function_definition_pattern = 'def \+\<$*\> *('
-let g:py_function_usage_pattern = '\<$*\> *('
-
-function! s:definition_search(word, pattern, fallback_pattern)
-    call s:lgrep_in_cwd(a:word)
-
-    let target_pattern = substitute(a:pattern, '\$\*', a:word, 'g')
-    let content = filter(getloclist(0), 'v:val["text"] =~? target_pattern')
-
-    if empty(content) && !empty(a:fallback_pattern)
-        let target_pattern = substitute(a:fallback_pattern, '\$\*', a:word, 'g')
-        let content = filter(getloclist(0), 'v:val["text"] =~? target_pattern')
-    endif
-
-    call setloclist(0, content)
-endfunction
-
-autocmd Filetype c,cpp noremap <silent> <buffer> <leader>j <cmd> call <sid>definition_search(expand('<cword>'), g:cpp_type_definition_pattern, g:cpp_function_pattern)<cr>
-autocmd Filetype c,cpp noremap <silent> <buffer> <leader>l <cmd> call <sid>definition_search(expand('<cword>'), g:cpp_usage_pattern, '')<cr>
-
-autocmd Filetype python noremap <silent> <buffer> <leader>j <cmd> call <sid>definition_search(expand('<cword>'), g:py_type_definition_pattern, g:py_function_definition_pattern)<cr>
-autocmd Filetype python noremap <silent> <buffer> <leader>l <cmd> call <sid>definition_search(expand('<cword>'), g:py_function_usage_pattern, g:py_type_usage_pattern)<cr>
-
-" Filename based header/source switching ---------------------------------------
-let g:c_cpp_header_extensions = ['h', 'hh', 'hpp', 'hxx']
-let g:c_cpp_source_extensions = ['cpp', 'cc', 'cxx', 'c']
-
-function! s:check_file(extensions)
-    let filename = expand('%:t:r')
-    for ext in a:extensions
-        if s:find_file(filename.'.'.ext) == 1
-            break
-        endif
-    endfor
-endfunction
-
-function! s:switch_source_header_c_cpp()
-    let current_extension = expand('%:e')
-    if index(g:c_cpp_source_extensions, current_extension) != -1
-        call s:check_file(g:c_cpp_header_extensions)
-    elseif index(g:c_cpp_header_extensions, current_extension) != -1
-        call s:check_file(g:c_cpp_source_extensions)
-    endif
-endfunction
-
-autocmd Filetype c,cpp nnoremap <silent> <f4> :call <sid>switch_source_header_c_cpp()<cr>
-
-endif
-
 " Clean trailing whitespaces and last empty lines ------------------------------
+function! s:execute_and_restore_pos(command)
+    let current_line = line('.')
+    let current_col = col('.')
+
+    execute(a:command)
+    call cursor(current_line, current_col)
+endfunction
+
 function! s:delete_trailing_whitespaces()
     call s:execute_and_restore_pos('%s/\s\+$//ge')
 endfunction
@@ -403,15 +297,3 @@ augroup WsCleaner
     autocmd BufWrite * call s:delete_trailing_whitespaces()
     autocmd BufWrite * call s:delete_last_empty_line()
 augroup end
-
-" Find files in working directory ----------------------------------------------
-function! s:find_file(filename)
-    let result = findfile(a:filename, getcwd().'/**')
-    if !empty(result)
-        execute('edit '.result)
-        return 1
-    endif
-endfunction
-
-" Jump to file under cursor
-nnoremap <silent> <f1> :call <sid>find_file(expand('<cfile>'))<cr>
