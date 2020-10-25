@@ -42,15 +42,15 @@ augroup NetrwListing
   autocmd! FileType netrw setlocal nonumber norelativenumber bufhidden=wipe colorcolumn=0
 augroup end
 
-set rtp+=/local/data/dotfiles/fsp
-set rtp+=/local/data/dotfiles/min_compl
-set rtp+=/local/data/dotfiles/task_exec
-set rtp+=/local/data/dotfiles/quickfix_cust
-set rtp+=/local/data/dotfiles/cword_hl
-set rtp+=/local/data/dotfiles/colorscheme
-set rtp+=/local/data/dotfiles/syntax_imp
-set rtp+=/local/data/dotfiles/git_fn
-set rtp+=/local/data/dotfiles/search_heu
+set rtp+=/local/data/dotfiles/plugins/fsp
+set rtp+=/local/data/dotfiles/plugins/min_compl
+set rtp+=/local/data/dotfiles/plugins/task_exec
+set rtp+=/local/data/dotfiles/plugins/quickfix_cust
+set rtp+=/local/data/dotfiles/plugins/cword_hl
+set rtp+=/local/data/dotfiles/plugins/colorscheme
+set rtp+=/local/data/dotfiles/plugins/syntax_imp
+set rtp+=/local/data/dotfiles/plugins/git_fn
+set rtp+=/local/data/dotfiles/plugins/search_heu
 
 let g:bgc_enable_statusline_customization = 1
 colorscheme bgc
