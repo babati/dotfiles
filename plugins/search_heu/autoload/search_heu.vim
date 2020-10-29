@@ -30,34 +30,34 @@ function! search_heu#grep_in_current_file(pattern)
     endif
 endfunction
 
-function! s:token_search(word, pattern, fallback_pattern)
+function! s:token_search(type, word, pattern, fallback_pattern)
     call search_heu#lgrep_in_cwd(a:word)
 
     let target_pattern = substitute(a:pattern, '\$\*', a:word, 'g')
-    let content = filter(getloclist(0), 'v:val["text"] =~? target_pattern')
+    let content = filter(getloclist(0), 'bufload(bufname(v:val["bufnr"])) || (getbufvar(v:val["bufnr"], "&filetype") == a:type && v:val["text"] =~? target_pattern)')
 
     if empty(content) && !empty(a:fallback_pattern)
         let target_pattern = substitute(a:fallback_pattern, '\$\*', a:word, 'g')
-        let content = filter(getloclist(0), 'v:val["text"] =~? target_pattern')
+        let content = filter(getloclist(0), 'bufload(bufname(v:val["bufnr"])) || (getbufvar(v:val["bufnr"], "&filetype") == a:type && v:val["text"] =~? target_pattern)')
     endif
 
     call setloclist(0, content)
 endfunction
 
 function! search_heu#definition_search_cpp(pattern)
-    call s:token_search(a:pattern, s:cpp_type_definition_pattern, s:cpp_function_pattern)
+    call s:token_search('cpp', a:pattern, s:cpp_type_definition_pattern, s:cpp_function_pattern)
 endfunction
 
 function! search_heu#usage_search_cpp(pattern)
-    call s:token_search(a:pattern, s:cpp_usage_pattern, '')
+    call s:token_search('cpp', a:pattern, s:cpp_usage_pattern, '')
 endfunction
 
 function! search_heu#definition_search_python(pattern)
-    call s:token_search(a:pattern, s:py_type_definition_pattern, s:py_function_definition_pattern)
+    call s:token_search('python', a:pattern, s:py_type_definition_pattern, s:py_function_definition_pattern)
 endfunction
 
 function! search_heu#usage_search_python(pattern)
-    call s:token_search(a:pattern, s:py_function_usage_pattern, s:py_type_usage_pattern)
+    call s:token_search('python', a:pattern, s:py_function_usage_pattern, s:py_type_usage_pattern)
 endfunction
 
 " File search
