@@ -1,5 +1,5 @@
 " Member
-syntax match PyClassMember '\.\<\w\+\>\ze\s*[^(]'
+syntax match PyClassMember '\<\w\+\>' contained
 highlight! default link PyClassMember Identifier
 
 " Function call

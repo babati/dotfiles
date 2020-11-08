@@ -1,7 +1,7 @@
 runtime! syntax/c.vim
 
 " Scoped type
-syntax match CppScopedType '::\s*\zs\<\w\+\>\ze\s*[^:]'
+syntax match CppScopedType '::\s*\zs\<\w\+\>'
 highlight! default link CppScopedType Type
 
 " Scope

@@ -1,5 +1,5 @@
 " Member
-syntax match CClassMember '\(\.\|->\)\zs\<\w\+\>\ze\s*[^(]'
+syntax match CClassMember '\(\.\|->\)\zs\<\w\+\>'
 highlight! default link CClassMember Identifier
 
 " Function call
