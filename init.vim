@@ -28,18 +28,9 @@ let g:netrw_keepdir = 1         " Do not change cwd at browsing
 let g:netrw_silent = 0          " File transfering is not silent
 let g:netrw_special_syntax = 1  " Syntax highlight for special files
 
-function! s:netrw_open(path)
-    let win_width = winwidth(0)
-    let g:netrw_maxfilenamelen = win_width - 42
-    execute('silent! edit '.(strlen(a:path) > 0 ? a:path : expand('%:p:h')))
-endfunction
-
-command! -nargs=? E call s:netrw_open('<args>')
-
 augroup NetrwListing
-  autocmd!
-  autocmd! VimEnter * if expand('%') == '' | call s:netrw_open('.') | endif
-  autocmd! FileType netrw setlocal nonumber norelativenumber bufhidden=wipe colorcolumn=0
+    autocmd!
+    autocmd! FileType netrw setlocal nonumber norelativenumber bufhidden=wipe colorcolumn=0
 augroup end
 
 " Plugins ----------------------------------------------------------------------
@@ -123,10 +114,11 @@ set encoding=utf8               " Set utf8 as standard encoding
 set ffs=unix,dos,mac            " Use Unix as the default file type
 
 set nobackup                    " Turn backup off
-set nowb                        " Do not write backup
+set nowritebackup               " Do not write backup
 set noswapfile                  " Turn swapping off
 
 set hidden                      " A buffer becomes hidden when it is abandoned
+set noequalalways               " Do not resize windows
 
 set expandtab                   " Use spaces instead of tabs
 set smarttab                    " Be smart when using tabs

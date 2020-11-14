@@ -20,7 +20,7 @@ function! s:collect_matching_words(base)
     if a:base[0] =~? '\w'
         let result = copy(s:keywords[tolower(a:base[0])])
         call filter(result, 'v:val =~? "^".a:base')
-        call map(result, "{ 'word': v:val, 'kind': ' <' }")
+        call map(result, "{ 'word': v:val, 'kind': ' ' }")
     endif
     return { 'words': result, 'refresh': 'always' }
 endfunction

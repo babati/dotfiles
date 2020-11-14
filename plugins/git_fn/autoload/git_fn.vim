@@ -136,7 +136,7 @@ function! git_fn#initialize()
         set grepprg=git\ --no-pager\ grep\ -n\ -E\ --no-color\ -i\ $*
         set grepformat=%f:%l:%m
 
-        sign define Added text=+ texthl=Structure
+        sign define Added text=+ texthl=diffAdded
         sign define Modified text=~ texthl=Type
         sign define Removed text=_ texthl=WarningMsg
 
