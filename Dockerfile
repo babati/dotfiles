@@ -61,8 +61,6 @@ RUN yum install -y \
     texlive-ulem \
     texlive-wrapfig
 
-RUN yum clean all
-
 # Variables
 ARG MOUNT_DIR=/local
 ARG USER=devel
