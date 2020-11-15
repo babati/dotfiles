@@ -33,11 +33,6 @@ Search text in files and load the result into the location list.
 Search text in files and load the result into the quickfix window.
 
 -------------------------------------------------------------------------------
-*:FindFile*
-
-Find file by name.
-
--------------------------------------------------------------------------------
 *:DefSearch*
 
 Find the given token's definition.
@@ -45,11 +40,6 @@ For C/C++/Python.
 
 ===============================================================================
 MAPPINGS                                                         *search_heu-mappings*
--------------------------------------------------------------------------------
-<f1>
-
-Find file under the cursor.
-
 -------------------------------------------------------------------------------
 <f4>
 

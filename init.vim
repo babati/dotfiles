@@ -136,6 +136,8 @@ set smartindent                 " Smart indent
 set nofoldenable                " No folding by default
 set foldmethod=manual           " Syntax defines folding
 
+set path=.,/usr/include/,,./**  " Paths for file searching
+
 "================================ Mappings =====================================
 " 0 as first non-blank character
 nnoremap 0 ^

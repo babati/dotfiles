@@ -16,12 +16,9 @@ command! -nargs=+ Bg call search_heu#grep_in_current_file('<args>')
 command! -nargs=+ Dg call search_heu#lgrep_in_cwd('<args>')
 command! -nargs=+ Dgq call search_heu#grep_in_cwd('<args>')
 
-command! -nargs=+ FindFile call search_heu#find_file('<args>')
 command! -nargs=+ DefSearch if &filetype == 'cpp' | call search_heu#definition_search_cpp('<args>') | elseif &filetype == 'python' | call search_heu#definition_search_python('<args>') | endif
 
 " Mappings
-nnoremap <silent> <f1> :execute('FindFile '.expand('<cfile>'))<cr>
-
 noremap <silent> <unique> <f11> :execute('Dg '.expand('<cword>'))<cr>
 noremap <silent> <unique> <f12> :execute('Bg '.expand('<cword>'))<cr>
 

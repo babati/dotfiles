@@ -95,7 +95,6 @@ function! s:fill_search_window(pattern, files)
 endfunction
 
 function! s:find_files(name, list)
-    cclose
     execute('below botright '.g:fsp_number_of_matches.'new '.a:name)
 
     let current_word = ''
