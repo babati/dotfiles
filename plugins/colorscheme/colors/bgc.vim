@@ -24,7 +24,7 @@ let s:color_blue3 = '67'
 
 let s:color_purple0 = '103'
 let s:color_purple1 = '60'
-let s:color_purple2 = '146'
+let s:color_purple2 = '147'
 
 let s:color_green0 = '66'
 let s:color_red0 = '131'
