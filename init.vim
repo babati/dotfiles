@@ -105,7 +105,6 @@ set novisualbell                " Disable visual bells
 set t_vb=                       " Disable screen flashing
 set tm=500                      " Timeout to complete a key mapping
 
-set number                      " Absolute number on current line
 set relativenumber              " Relative numbers on other lines
 set cursorline                  " Highlight current line
 set colorcolumn=80              " Show colored column
@@ -118,7 +117,7 @@ set nowritebackup               " Do not write backup
 set noswapfile                  " Turn swapping off
 
 set hidden                      " A buffer becomes hidden when it is abandoned
-set noequalalways               " Do not resize windows
+set equalalways                 " Automatically resize windows
 
 set expandtab                   " Use spaces instead of tabs
 set smarttab                    " Be smart when using tabs
