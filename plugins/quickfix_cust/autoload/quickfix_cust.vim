@@ -18,11 +18,17 @@ function! quickfix_cust#toggle_loclist_window()
     endif
 endfunction
 
+function s:open_in_last_window()
+    let current = getqflist()[line('.') - 1]
+    wincmd p
+    execute 'buffer '.current.bufnr
+endfunction
+
 function! quickfix_cust#initialize()
     augroup QfCustomization
         autocmd!
         autocmd FileType qf setlocal wrap nonumber norelativenumber colorcolumn=0 statusline=
-        autocmd FileType qf wincmd J
+        autocmd FileType qf nnoremap <silent> <buffer> <cr> :call <sid>open_in_last_window()<cr>
         autocmd WinEnter * if winnr('$') == 1 && &buftype == "quickfix" | quit | endif
     augroup end
 endfunction

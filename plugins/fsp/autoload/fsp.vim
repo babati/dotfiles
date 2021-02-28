@@ -94,7 +94,16 @@ function! s:fill_search_window(pattern, files)
     redraw
 endfunction
 
+function! s:close_qf_windows()
+    for info in reverse(getwininfo())
+        if info.quickfix
+            execute info.winnr.' close'
+        endif
+    endfor
+endfunction
+
 function! s:find_files(name, list)
+    call s:close_qf_windows()
     execute('below botright '.g:fsp_number_of_matches.'new '.a:name)
 
     let current_word = ''
