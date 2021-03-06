@@ -96,7 +96,7 @@ endfunction
 
 function! s:close_qf_windows()
     for info in reverse(getwininfo())
-        if info.quickfix
+        if info.quickfix && info.tabnr == tabpagenr()
             execute info.winnr.' close'
         endif
     endfor

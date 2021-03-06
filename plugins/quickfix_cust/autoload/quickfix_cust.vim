@@ -12,16 +12,22 @@ function! quickfix_cust#toggle_loclist_window()
     let loclist_winid = getloclist(0, {'winid':1})
 
     if empty(loclist_winid) || empty(getwininfo(loclist_winid.winid))
-        silent! lopen
+        silent! botright lopen
     else
         lclose
     endif
 endfunction
 
 function s:open_in_last_window()
-    let current = getqflist()[line('.') - 1]
-    wincmd p
-    execute 'buffer '.current.bufnr
+    if getwininfo(win_getid())[0].loclist
+        call feedkeys("\<cr>", 'n')
+    elseif !empty(getqflist())
+        let current = getqflist()[line('.') - 1]
+        if current.bufnr
+            wincmd p
+            execute 'buffer +'.current.lnum.' '.current.bufnr
+        endif
+    endif
 endfunction
 
 function! quickfix_cust#initialize()
