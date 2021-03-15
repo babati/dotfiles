@@ -18,7 +18,7 @@ endfunction
 
 function! search_heu#lgrep_in_cwd(pattern)
     execute('silent lgrep! "'.a:pattern.'" '.getcwd())
-    silent! lopen
+    silent! botright lopen
 endfunction
 
 function! search_heu#grep_in_current_file(pattern)
@@ -26,7 +26,7 @@ function! search_heu#grep_in_current_file(pattern)
 
     if !empty(filename)
         execute('silent lvimgrep "'.a:pattern.'" '.filename)
-        silent lopen
+        silent! botright lopen
     endif
 endfunction
 
